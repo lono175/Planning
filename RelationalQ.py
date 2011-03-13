@@ -111,6 +111,7 @@ class RelationalQ:
 
     def step(self, reward, observation):
         newAction = self.selectAction(observation)
+        
         newQ = self.getQ(observation, newAction)
         deltaQ = self.getDeltaQ(self.lastQ, reward, newQ)
         self.updateQ( self.lastObservation, self.lastAction, deltaQ)
@@ -121,11 +122,17 @@ class RelationalQ:
         return newAction
 
     def end(self, reward):
-        diffQ = self.getDeltaQ(self.lastQ, reward, 0)
-        self.updateQ( self.lastObservation, self.lastAction, diffQ)
+        deltaQ = self.getDeltaQ(self.lastQ, reward, 0)
+
+        #if  reward > 20:
+            #IPython.Shell.IPShellEmbed()()
+        self.updateQ( self.lastObservation, self.lastAction, deltaQ)
 
     def dumpObj(self):
         for conf in self.agent:
+            if (abs(conf[2]) + abs(conf[3])) >= 2:
+                continue
+                
             print "Config:", conf
             for type in range(3, 4):
                     for X in range(-1, 2):
