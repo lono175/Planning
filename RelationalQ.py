@@ -2,11 +2,12 @@ import random
 #import RLSARSA
 import LinearSARSA
 import gridDef
-import IPython #for debug
+#import IPython #for debug
 monsterType = gridDef.monsterType
 coinType = gridDef.coinType
 XType = gridDef.XType
 YType = gridDef.YType
+goalType = gridDef.goalType
 
 #all, mario position, monster, coin,  coin+monster
 #predict Q from lower order
@@ -14,7 +15,7 @@ YType = gridDef.YType
 #conf: (2, 1) 2 monster, 1 coin
 #conf: (0, 0) mario location
 class RelationalQ:
-    def __init__(self, alpha, epsilon, gamma, actionList, agentList):
+    def __init__(self, alpha, epsilon, gamma, actionList):
         self.actionList = actionList
         self.epsilon = epsilon
         self.alpha = alpha
@@ -23,11 +24,8 @@ class RelationalQ:
         self.dumpCount = 0 #dump is done by relationalQ
         self.agent = {}
 
-    def getAgent(self, conf, goal):
-        return (conf[0], conf[1], goal[0], goal[1])
-
-    def addAgent(self, conf, goal):
-        key = self.getAgent(conf, goal)
+    def addAgent(self, conf):
+        key = conf
         if not key in self.agent:
             self.agent[key] = LinearSARSA.LinearSARSA(self.alpha, self.epsilon, self.gamma, self.actionList, self.initialQ, self.dumpCount )
 
@@ -38,19 +36,17 @@ class RelationalQ:
         return Q
 
     def getQ(self, observation, action):
-        goal, marioLoc, objLoc = observation
+        marioLoc, objLoc = observation
         Q = 0
 
         for key in self.agent:
-            if key[2] != goal[0] and key[3] != goal[1]:
-                continue
             feaList = Predicate.GetRelFeature(observation, key[0], key[1])
             for fea in feaList:
                 Q = Q + self.agent[key].getQ(fea, action)
         return Q
 
     def getCurConf(self, observation):
-        goal, marioLoc, objLoc = observation
+        marioLoc, objLoc = observation
         monNum = 0
         coinNum = 0
         for obj in objLoc:
@@ -100,14 +96,14 @@ class RelationalQ:
         return (reward + self.gamma * newQVal - lastQ)
 
     def updateQ(self, observation, action, deltaQ):
-        goal, marioLoc, objLoc = observation
+        marioLoc, objLoc = observation
         #find current conf
         curConf = self.getCurConf(observation)
         relFea = Predicate.GetRelFeature(observation, curConf[0], curConf[1])
         assert (len(relFea) <= 1) #there shall only one of it
         if len(relFea) == 1:
-            self.addAgent(curConf, goal)
-            self.agent[self.getAgent(curConf, goal)].updateQ(relFea[0], action, deltaQ)
+            self.addAgent(curConf)
+            self.agent[curConf].updateQ(relFea[0], action, deltaQ)
 
     def step(self, reward, observation):
         newAction = self.selectAction(observation)
@@ -130,11 +126,8 @@ class RelationalQ:
 
     def dumpObj(self):
         for conf in self.agent:
-            if (abs(conf[2]) + abs(conf[3])) >= 2:
-                continue
-                
             print "Config:", conf
-            for type in range(3, 4):
+            for type in range(3, 5):
                     for X in range(-1, 2):
                         for Y in range(-1, 2):
                             keyX = (type, XType, X)
@@ -142,8 +135,25 @@ class RelationalQ:
                             for action in self.actionList:
                                 Q = self.agent[conf].getQ([keyX, keyY], action)
                                 if Q != 0:
-                                    print (X, Y), action, ": ", Q
+                                    print (type, X, Y), action, ": ", Q
         
+    def dumpCoinAndGoal(self):
+        for conf in [(0, 1)]:
+            print "Config:", conf
+            for cX in range(-1, 2):
+                for cY in range(-1, 2):
+                    for gX in range(-1, 2):
+                        for gY in range(-1, 2):
+                            keyX = (coinType, XType, cX)
+                            keyY = (coinType, YType, cY)
+                            goalX = (goalType, XType, gX)
+                            goalY= (goalType, YType, gY)
+                            for action in self.actionList:
+                                Q = self.agent[conf].getQ([keyX, keyY, goalX, goalY], action)
+                                if Q != 0:
+                                    print (gX, gY, cX, cY), action, ": ", Q
+        
+
     def dump(self):
         for conf in self.agent:
             print "Config:", conf
@@ -156,26 +166,26 @@ class RelationalQ:
                             if Q != 0:
                                 print key, action, ": ", Q
 
-def getMarioLoc(observation, size):
-    height, width = size
-    for y in range(0, height):
-        for x in range(0, width):
-            key = (y, x)
-            if(observation[key] == 1):
-                return key
-    return (-1, -1)
+#def getMarioLoc(observation, size):
+    #height, width = size
+    #for y in range(0, height):
+        #for x in range(0, width):
+            #key = (y, x)
+            #if(observation[key] == 1):
+                #return key
+    #return (-1, -1)
 
-def getObjLoc(observation, size):
-    res = []
-    height, width = size
-    for y in range(0, height):
-        for x in range(0, width):
-            key = (y, x)
-            if(observation[key] == 2):
-                res.append( (2, y, x))
-            elif (observation[key] == 3):
-                res.append( (3, y, x))
-    return res
+#def getObjLoc(observation, size):
+    #res = []
+    #height, width = size
+    #for y in range(0, height):
+        #for x in range(0, width):
+            #key = (y, x)
+            #if(observation[key] == 2):
+                #res.append( (2, y, x))
+            #elif (observation[key] == 3):
+                #res.append( (3, y, x))
+    #return res
 
 import Predicate
 if __name__ == "__main__":

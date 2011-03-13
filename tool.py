@@ -19,3 +19,8 @@ def getObjLoc(observation, size):
             elif (observation[key] == 3):
                 res.append( (3, y, x))
     return res
+def addGoalLoc(objLoc, goal):
+    newObjLoc = objLoc
+    newObjLoc.append((4, goal[0], goal[1]))
+    return newObjLoc
+

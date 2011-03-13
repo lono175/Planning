@@ -2,7 +2,7 @@ import random
 import sys,pygame
 import gridDef
 
-import IPython
+#import IPython
 monsterType = gridDef.monsterType
 coinType = gridDef.coinType
 marioType = gridDef.marioType
@@ -19,7 +19,7 @@ class Grid:
         #Mario is 1
         #turtle is 2
         #coin is 3
-        #objective is 4
+        #goal is 4
         #empty tile is 0
         self.world = {}
 
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode(size)
 
     actionList = ((0, 1), (0, -1), (1, 0), (-1, 0))
-    controller = RelationalQ.RelationalQ(0.1, 0.2, 0.9, actionList, confList)
+    controller = RelationalQ.RelationalQ(0.1, 0.1, 0.9, actionList)
     env = Grid((discrete_size, discrete_size), size, actionList, monsterMoveProb)
 
     numOfTurtle = objSet[0]
@@ -260,7 +260,8 @@ if __name__ == "__main__":
         objLoc = tool.getObjLoc(world, gridSize)
         marioLoc = tool.getMarioLoc(world, gridSize)
         goal = (marioLoc[0]+goalDiff[0], marioLoc[1]+goalDiff[1])
-        ob = (goalDiff, marioLoc, objLoc)
+        objLocWithGoal = tool.addGoalLoc(objLoc, goal)
+        ob = (marioLoc, objLocWithGoal)
         action = controller.start(ob)
 
         count += 1
@@ -278,8 +279,9 @@ if __name__ == "__main__":
                 break
             objLoc = tool.getObjLoc(world, gridSize)
             marioLoc = tool.getMarioLoc(world, gridSize)
-            goalDiff = (goal[0]-marioLoc[0], goal[1]-marioLoc[1])
-            ob = (goalDiff, marioLoc, objLoc)
+            objLocWithGoal = tool.addGoalLoc(objLoc, goal)
+            #goalDiff = (goal[0]-marioLoc[0], goal[1]-marioLoc[1])
+            ob = (marioLoc, objLocWithGoal)
             action = controller.step(reward, ob)
 
             for event in pygame.event.get():
@@ -293,4 +295,5 @@ if __name__ == "__main__":
     for conf in controller.agent:
         print controller.agent[conf].Q
     controller.dumpObj()
+    controller.dumpCoinAndGoal()
     #print controller.agent

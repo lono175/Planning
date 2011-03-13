@@ -1,11 +1,12 @@
 from __future__ import generators
 import copy
 import gridDef
-import IPython
+#import IPython
 monsterType = gridDef.monsterType
 coinType = gridDef.coinType
 XType = gridDef.XType
 YType = gridDef.YType
+goalType = gridDef.goalType
 
 def getObjLoc(observation):
     res = []
@@ -35,7 +36,7 @@ def getNearObj(observation, type):
     return tuple(res)
 
 def getObjFeature(ob):
-    marioLoc, monLoc, coinLoc = ob
+    marioLoc, monLoc, coinLoc, goalLoc = ob
 
     feaList = []
     #add mario Loc into it
@@ -57,6 +58,13 @@ def getObjFeature(ob):
             fea = (coinType, XType, loc)
         else:
             fea = (coinType, YType, loc)
+        i = i + 1
+        feaList.append(fea)
+    for loc in goalLoc:
+        if i % 2 == 0:
+            fea = (goalType, XType, loc)
+        else:
+            fea = (goalType, YType, loc)
         i = i + 1
         feaList.append(fea)
     return feaList
@@ -83,7 +91,7 @@ def xuniqueCombinations(items, n):
             for cc in xuniqueCombinations(items[i+1:],n-1):
                 yield [items[i]]+cc
 def getFeature(observation, order, type):
-    goal, marioLoc, objLoc = observation
+    marioLoc, objLoc = observation
     coinList = []
     for obj in objLoc:
         if obj[0] == type:
@@ -109,13 +117,16 @@ def getFeature(observation, order, type):
     return res
 
 def GetRelFeature( observation, monsterOrder, coinOrder):
-    goal, marioLoc, objLoc = observation
+    marioLoc, objLoc = observation
     coinFea = getFeature(observation, coinOrder, coinType)
     monFea = getFeature(observation, monsterOrder, monsterType)
+    goalFea = getFeature(observation, 1, goalType)
+    
     res = []
     for coin in coinFea:
         for monster in monFea:
-            res.append(getObjFeature((marioLoc, monster, coin)))
+            for goal in goalFea:
+                res.append(getObjFeature((marioLoc, monster, coin, goal)))
     if res == [[]]:
         res = []  #a little ugly here, it happens when monFea is empty or coinFea is empty
     return res
