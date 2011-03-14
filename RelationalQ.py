@@ -22,6 +22,7 @@ class RelationalQ:
         self.gamma = gamma
         self.initialQ = 0
         self.dumpCount = 0 #dump is done by relationalQ
+        self.isUpdate = True
         self.agent = {}
 
     def addAgent(self, conf):
@@ -29,6 +30,17 @@ class RelationalQ:
         if not key in self.agent:
             self.agent[key] = LinearSARSA.LinearSARSA(self.alpha, self.epsilon, self.gamma, self.actionList, self.initialQ, self.dumpCount )
 
+    def getMaxQ(self, observation):
+        Q = self.getAllQ(observation)
+        assert len(Q) > 0
+        #print observation
+        #print Q
+        maxQ = -1000 #TODO: tempoaray solution
+        for v in Q:
+            if Q[v] > maxQ:
+               maxQ = Q[v]
+        return maxQ
+        
     def getAllQ(self, observation):
         Q = {}
         for action in self.actionList:
@@ -84,6 +96,9 @@ class RelationalQ:
                 i = i + 1
             return action
 
+    def disableUpdate(self):
+        self.isUpdate = False
+
     def start(self, observation):
         #print "-start-"
         #print "obj loc: ", self.getObjLoc(observation)
@@ -109,8 +124,9 @@ class RelationalQ:
         newAction = self.selectAction(observation)
         
         newQ = self.getQ(observation, newAction)
-        deltaQ = self.getDeltaQ(self.lastQ, reward, newQ)
-        self.updateQ( self.lastObservation, self.lastAction, deltaQ)
+        if self.isUpdate == True:
+            deltaQ = self.getDeltaQ(self.lastQ, reward, newQ)
+            self.updateQ( self.lastObservation, self.lastAction, deltaQ)
 
         self.lastObservation = observation
         self.lastAction = newAction
@@ -118,11 +134,9 @@ class RelationalQ:
         return newAction
 
     def end(self, reward):
-        deltaQ = self.getDeltaQ(self.lastQ, reward, 0)
-
-        #if  reward > 20:
-            #IPython.Shell.IPShellEmbed()()
-        self.updateQ( self.lastObservation, self.lastAction, deltaQ)
+        if self.isUpdate == True:
+            deltaQ = self.getDeltaQ(self.lastQ, reward, 0)
+            self.updateQ( self.lastObservation, self.lastAction, deltaQ)
 
     def dumpObj(self):
         for conf in self.agent:

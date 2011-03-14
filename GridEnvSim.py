@@ -116,7 +116,7 @@ class Grid:
         if marioLoc[0] == self.objective[0] and marioLoc[1] == self.objective[1]:
             #print "goal reached"
             return True 
-        if self.stepNum > 10: #mario needs to acheive its goal in a very short time
+        if self.stepNum > 2: #mario needs to acheive its goal in a very short time
             #print "Too long"
             return True
         if reward == -30:
@@ -173,7 +173,7 @@ class Grid:
 
         #add a small reward to reward the agent who reaches the subgoal
         if marioNewLoc[0] == self.objective[0] and marioNewLoc[1] == self.objective[1]:
-            reward = reward + 0.6
+            reward = reward + 10
         self.world[marioNewLoc] = 1
         return reward
 
@@ -215,15 +215,25 @@ class Grid:
 
         return self.screen
 
+def Save(agent, filename): 
+    import pickle
+    output = open(filename, 'wb')
+    pickle.dump(agent, output)
+    output.close()
+
+def Load(filename):
+    import pickle
+    input = open(filename, 'rb')
+    return pickle.load(input)
 import RelationalQ
 import tool
 if __name__ == "__main__":
     confList = [(0, 1)]
-    discrete_size = 5
+    discrete_size = 8
     objSet = (0, 1)
     monsterMoveProb = 0.3
     isEpisodeEnd = False
-    maxStep = 10000
+    maxStep = 1000
     frameRate = 5000
     isShow = False
     size = 800, 800
@@ -296,4 +306,5 @@ if __name__ == "__main__":
         print controller.agent[conf].Q
     controller.dumpObj()
     controller.dumpCoinAndGoal()
+    Save(controller, 'smart.db')
     #print controller.agent
