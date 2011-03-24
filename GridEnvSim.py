@@ -59,9 +59,9 @@ class Grid:
 
     def step(self, action, isTraining):
         self.stepNum = self.stepNum + 1
-        reward = self.updateState(action)
+        reward, realReward, isSuccess = self.updateState(action)
         flag = self.isTerminal(reward, isTraining)
-        return reward, self.world, flag
+        return reward, self.world, flag, realReward, isSuccess
 
     #def find(self, type):
         #for y in range(0, self.width):
@@ -172,10 +172,13 @@ class Grid:
             reward = -30
 
         #add a small reward to reward the agent who reaches the subgoal
+        realReward = reward
+        isSuccess = False
         if marioNewLoc[0] == self.objective[0] and marioNewLoc[1] == self.objective[1]:
-            reward = reward + 10
+            reward = reward + 20
+            isSuccess = True
         self.world[marioNewLoc] = 1
-        return reward
+        return reward, realReward, isSuccess
 
     def getScreen(self):
         white = 255,255,255
@@ -280,19 +283,19 @@ if __name__ == "__main__":
         while stepCount < maxStep:
             stepCount = stepCount + 1
             clock.tick(frameRate)
-            reward, world, flag = env.step(action, isTraining)
+            reward, world, flag, realReward, isSuccess = env.step(action, isTraining)
             totalReward = totalReward + reward
             episodeReward = episodeReward + reward
             if flag:
                 #print "episodeEnd: ", reward
-                controller.end(reward)
+                controller.end(reward, realReward, isSuccess)
                 break
             objLoc = tool.getObjLoc(world, gridSize)
             marioLoc = tool.getMarioLoc(world, gridSize)
             objLocWithGoal = tool.addGoalLoc(objLoc, goal)
             #goalDiff = (goal[0]-marioLoc[0], goal[1]-marioLoc[1])
             ob = (marioLoc, objLocWithGoal)
-            action = controller.step(reward, ob)
+            action = controller.step(reward, ob, realReward, isSuccess)
 
             for event in pygame.event.get():
                 #action = 0

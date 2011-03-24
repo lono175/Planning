@@ -18,8 +18,8 @@ def GetPlan(gridSize, marioLoc, objLoc, controller):
                 #compute the link cost
                 maxQ = controller.getMaxQ(ob)
                 #print maxQ
-                assert(maxQ > -10) #don't handle monster
-                linkCost = 1 / (10 + maxQ)
+                #assert(maxQ > -10) #don't handle monster
+                linkCost = 1 / pow(2, (1 + maxQ))
                 DG.add_weighted_edges_from([(loc, goal, linkCost)])
 
     #for x in range(0, gridSize):
@@ -104,7 +104,6 @@ import GridEnv
 import sys,pygame
 import copy #for copy objects
 def TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpisodeEnd, isShow, frameRate):
-    controller.disableUpdate() #no update after training
     print "MaxStep: ", maxStep
     size = 800, 800
     gridSize = (discrete_size, discrete_size)
@@ -138,6 +137,7 @@ def TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpiso
         #print totalReward
         #rewardList[i] = totalReward
 
+        Save(controller, 'smart.db')
         world = env.start(numOfTurtle, numOfCoin)
         objLoc = tool.getObjLoc(world, gridSize)
         marioLoc = tool.getMarioLoc(world, gridSize)

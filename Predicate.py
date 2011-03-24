@@ -99,21 +99,22 @@ def getFeature(observation, order, type):
     coinList = sorted(coinList, key=lambda obj: obj[1]) 
     coinList = sorted(coinList, key=lambda obj: -(obj[0]*obj[0]+obj[1]*obj[1])) 
     
-    feaList = []
-    for i in xuniqueCombinations(coinList, order):
-       feaList.append(i) 
+    #feaList = []
+    #for i in xuniqueCombinations(coinList, order):
+       #feaList.append(i) 
     #if feaList == [[]]:
         #feaList = []  #a little ugly here, it comes when order is 0 or coinList is empty
 
-    res = []
-    while feaList != []:
-        last = feaList.pop()
-        last.reverse()
-        listOfLoc = []
-        for loc in last:
-            listOfLoc.append(loc[0])
-            listOfLoc.append(loc[1])
-        res.append(tuple(listOfLoc))
+    #res = []
+    #while feaList != []:
+        #last = feaList.pop()
+        #last.reverse()
+        #listOfLoc = []
+        #for loc in last:
+            #listOfLoc.append(loc[0])
+            #listOfLoc.append(loc[1])
+        #res.append(tuple(listOfLoc))
+    res = [coinList]
     return res
 
 def GetRelFeature( observation, monsterOrder, coinOrder):

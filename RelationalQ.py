@@ -24,6 +24,9 @@ class RelationalQ:
         self.dumpCount = 0 #dump is done by relationalQ
         self.isUpdate = True
         self.agent = {}
+        self.addAgent(0)
+        self.prob = LinearSARSA.LinearSARSA(self.alpha, self.epsilon, self.gamma, self.actionList, 0, self.dumpCount )
+        self.realReward = LinearSARSA.LinearSARSA(self.alpha, self.epsilon, self.gamma, self.actionList, 0, self.dumpCount )
 
     def addAgent(self, conf):
         key = conf
@@ -51,11 +54,45 @@ class RelationalQ:
         marioLoc, objLoc = observation
         Q = 0
 
-        for key in self.agent:
-            feaList = Predicate.GetRelFeature(observation, key[0], key[1])
-            for fea in feaList:
-                Q = Q + self.agent[key].getQ(fea, action)
+        key = self.getCurConf( observation)
+        fea = Predicate.GetRelFeature(observation, key[0], key[1])
+        assert(len(fea) == 1)
+        Q = self.agent[0].getQ(fea[0], action)
+        #for key in self.agent:
+            #feaList = 
+            #for fea in feaList:
+                #Q = Q + self.agent[key].getQ(fea, action)
         return Q
+    def getProb(self, observation, action):
+        marioLoc, objLoc = observation
+        key = self.getCurConf( observation)
+        fea = Predicate.GetRelFeature(observation, key[0], key[1])
+        assert(len(fea) == 1)
+        return self.prob.getQ(fea[0], action)
+        
+    def getReward(self, observation, action):
+        marioLoc, objLoc = observation
+        key = self.getCurConf( observation)
+        fea = Predicate.GetRelFeature(observation, key[0], key[1])
+        assert(len(fea) == 1)
+        return self.realReward.getQ(fea[0], action)
+
+    def updateReward(self, observation, action, deltaQ):
+        marioLoc, objLoc = observation
+        #find current conf
+        curConf = self.getCurConf(observation)
+        relFea = Predicate.GetRelFeature(observation, curConf[0], curConf[1])
+        assert (len(relFea) == 1) #there shall only one of it
+        #self.addAgent(curConf)
+        self.realReward.updateQ(relFea[0], action, deltaQ)
+
+    def updateProb(self, observation, action, deltaQ):
+        marioLoc, objLoc = observation
+        #find current conf
+        curConf = self.getCurConf(observation)
+        relFea = Predicate.GetRelFeature(observation, curConf[0], curConf[1])
+        assert (len(relFea) <= 1) #there shall only one of it
+        self.prob.updateQ(relFea[0], action, deltaQ)
 
     def getCurConf(self, observation):
         marioLoc, objLoc = observation
@@ -117,10 +154,10 @@ class RelationalQ:
         relFea = Predicate.GetRelFeature(observation, curConf[0], curConf[1])
         assert (len(relFea) <= 1) #there shall only one of it
         if len(relFea) == 1:
-            self.addAgent(curConf)
-            self.agent[curConf].updateQ(relFea[0], action, deltaQ)
+            #self.addAgent(curConf)
+            self.agent[0].updateQ(relFea[0], action, deltaQ)
 
-    def step(self, reward, observation):
+    def step(self, reward, observation, realReward, isSuccess):
         newAction = self.selectAction(observation)
         
         newQ = self.getQ(observation, newAction)
@@ -128,15 +165,40 @@ class RelationalQ:
             deltaQ = self.getDeltaQ(self.lastQ, reward, newQ)
             self.updateQ( self.lastObservation, self.lastAction, deltaQ)
 
+            #update probabilistic model
+            oldProb = self.getProb(self.lastObservation, self.lastAction)
+            if isSuccess:
+               deltaProb = 0 - oldProb
+            else:
+               deltaProb = -10 - oldProb
+            self.updateProb(self.lastObservation, self.lastAction, deltaProb)
+            #update reward model
+            oldRealReward = self.getReward(self.lastObservation, self.lastAction)
+            deltaReward = realReward + oldRealReward
+            self.updateReward(self.lastObservation, self.lastAction, deltaReward)
+
+
         self.lastObservation = observation
         self.lastAction = newAction
         self.lastQ = newQ
         return newAction
 
-    def end(self, reward):
+    def end(self, reward, realReward, isSuccess):
         if self.isUpdate == True:
             deltaQ = self.getDeltaQ(self.lastQ, reward, 0)
             self.updateQ( self.lastObservation, self.lastAction, deltaQ)
+
+            #update probabilistic model
+            oldProb = self.getProb(self.lastObservation, self.lastAction)
+            if isSuccess:
+               deltaProb = 0 - oldProb
+            else:
+               deltaProb = -10 - oldProb
+            self.updateProb(self.lastObservation, self.lastAction, deltaProb)
+            #update reward model
+            oldRealReward = self.getReward(self.lastObservation, self.lastAction)
+            deltaReward = realReward + oldRealReward
+            self.updateReward(self.lastObservation, self.lastAction, deltaReward)
 
     def dumpObj(self):
         for conf in self.agent:
@@ -152,7 +214,7 @@ class RelationalQ:
                                     print (type, X, Y), action, ": ", Q
         
     def dumpCoinAndGoal(self):
-        for conf in [(0, 1)]:
+        for conf in [0]:
             print "Config:", conf
             for cX in range(-1, 2):
                 for cY in range(-1, 2):
@@ -207,7 +269,7 @@ if __name__ == "__main__":
     goalList = [(1, 0), (0, 1)]
     preList = [(0, 1), (1, 0), (1,1)]
     size = (5, 1)
-    controller = RelationalQ(0.2, 0, 0.5, (-1, 1), preList, goalList)
+    controller = RelationalQ(0.2, 0, 0.5, (-1, 1))
     trainingStage = 3
     world = {}
     world[(0, 0)] = 1

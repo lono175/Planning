@@ -9,8 +9,6 @@ import Predicate
 import LinearSARSA
 import GridEnv
 
-         
-
 def Save(agent, filename): 
     import pickle
     output = open(filename, 'wb')
