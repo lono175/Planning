@@ -33,6 +33,21 @@ class RelationalQ:
         if not key in self.agent:
             self.agent[key] = LinearSARSA.LinearSARSA(self.alpha, self.epsilon, self.gamma, self.actionList, self.initialQ, self.dumpCount )
 
+    def getLinkCost(self, observation, agent):
+        key = self.getCurConf( observation)
+        fea = Predicate.GetRelFeature(observation, key[0], key[1])
+        cost = {}
+        for action in self.actionList:
+            assert(len(fea) == 1)
+            cost[action] = agent.getQ(fea[0], action)
+
+        maxCost = -100000 #TODO: tempoaray solution
+        for v in cost:
+            if cost[v] > maxCost:
+               maxCost = cost[v]
+        return maxCost
+
+
     def getMaxQ(self, observation):
         Q = self.getAllQ(observation)
         assert len(Q) > 0
@@ -51,7 +66,7 @@ class RelationalQ:
         return Q
 
     def getQ(self, observation, action):
-        marioLoc, objLoc = observation
+        #marioLoc, objLoc = observation
         Q = 0
 
         key = self.getCurConf( observation)

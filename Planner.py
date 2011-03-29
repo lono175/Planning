@@ -1,5 +1,6 @@
 import networkx as nx
 import tool
+import math #for exp
 def GetPlan(gridSize, marioLoc, objLoc, controller):
     
     diffGoal = ((0, 1), (0, -1), (1, 0), (-1, 0))
@@ -16,10 +17,15 @@ def GetPlan(gridSize, marioLoc, objLoc, controller):
                 objLocWithGoal = tool.addGoalLoc(objLoc, goal)
                 ob = (loc, objLocWithGoal)
                 #compute the link cost
-                maxQ = controller.getMaxQ(ob)
+                linkCost = controller.getLinkCost(ob, controller.prob)
+
+                #temporary solution, log prob is max at 0
+                if linkCost > 0:
+                   linkCost = 0
+                linkCost = -linkCost #need to be positive
                 #print maxQ
                 #assert(maxQ > -10) #don't handle monster
-                linkCost = 1 / pow(2, (1 + maxQ))
+                #linkCost = 1 / pow(2, (1 + maxQ))
                 DG.add_weighted_edges_from([(loc, goal, linkCost)])
 
     #for x in range(0, gridSize):
@@ -33,10 +39,11 @@ def GetPlan(gridSize, marioLoc, objLoc, controller):
     #print nx.shortest_path_length(DG, source = marioLoc, target = (4, 4), weighted=True)
 
     #follow the path and find the one with maximum reward
-    maxQ = -10000
+    maxQ = -1000000
     bestPath = []
     for goal in pathList:
         Q = 0
+        accProb = 0
         path = pathList[goal]
         #print "--------------path: ", path
         prev = path.pop(0) #remove the first one
@@ -45,9 +52,18 @@ def GetPlan(gridSize, marioLoc, objLoc, controller):
             objLocWithGoal = tool.addGoalLoc(objLoc, node)
             ob = (prev, objLocWithGoal)
             #print "observation: ", ob
-            nodeQ = controller.getMaxQ(ob)
+            prob = controller.getLinkCost(ob, controller.prob)
+
+            #temporary solution
+            if prob > 0:
+               prob = 0
+            prob = prob*4
+
+            accProb = accProb + prob
+            reward = controller.getLinkCost(ob, controller.realReward)
+
             #print "nodeQ: ", nodeQ
-            Q = Q + nodeQ
+            Q = Q + reward*math.exp(accProb)
             prev = node
         #print "Q: ", Q
         if Q > maxQ:

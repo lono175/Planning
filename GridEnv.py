@@ -1,5 +1,13 @@
 import random
 import sys,pygame
+import gridDef
+
+#import IPython
+monsterType = gridDef.monsterType
+coinType = gridDef.coinType
+marioType = gridDef.marioType
+XType = gridDef.XType
+YType = gridDef.YType
 
 class Grid:
     def __init__(self, size, imgSize, actionList, monsterMoveProb):
