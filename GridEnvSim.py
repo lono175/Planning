@@ -116,7 +116,7 @@ class Grid:
         if marioLoc[0] == self.objective[0] and marioLoc[1] == self.objective[1]:
             #print "goal reached"
             return True 
-        if self.stepNum > 2: #mario needs to acheive its goal in a very short time
+        if self.stepNum > 1: #mario needs to acheive its goal in a very short time
             #print "Too long"
             return True
         if reward == -30:
@@ -125,7 +125,8 @@ class Grid:
         return False
 
     def updateState(self, action):
-        reward = -0.1
+        realReward = -0.1
+        internalReward = -0.1
         marioLocList = self.find(marioType) 
         if marioLocList !=  []:
             marioOldLoc = marioLocList[0]
@@ -162,23 +163,26 @@ class Grid:
 
         #check Mario stays in the boundary
         if not marioNewLoc in self.world:
-            reward = 0 #don't punish it
+            #reward = 0 #don't punish it
             marioNewLoc = marioOldLoc
         #check if Mario eats coin
         if self.world[marioNewLoc] == coinType:
-            reward = 20
-        elif self.world[marioNewLoc] == monsterType or self.world[marioOldLoc] == monsterType:
-            #meet turtle
-            reward = -30
+            realReward = realReward + 20
 
-        #add a small reward to reward the agent who reaches the subgoal
-        realReward = reward
+        #meet turtle
+        isMarioAlive = True
+        if self.world[marioNewLoc] == monsterType or self.world[marioOldLoc] == monsterType:
+            reward = realReward - 30
+            isMarioAlive = False
+
         isSuccess = False
         if marioNewLoc[0] == self.objective[0] and marioNewLoc[1] == self.objective[1]:
-            reward = reward + 20
-            isSuccess = True
+            if isMarioAlive:
+                isSuccess = True
+                #add a small reward to reward the agent who reaches the subgoal
+                internalReward = internalReward + 20
         self.world[marioNewLoc] = 1
-        return reward, realReward, isSuccess
+        return internalReward, realReward, isSuccess
 
     def getScreen(self):
         white = 255,255,255
