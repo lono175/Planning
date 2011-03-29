@@ -13,15 +13,7 @@ class Grid:
         #empty tile is 0
         self.world = {}
 
-    def getNewLoc(self, locList):
-        while True:
-            locX = min(int(random.random()*self.width), self.width -1);
-            locY = min(int(random.random()*self.height), self.height -1);
-            loc = (locX, locY)
-            if locList.count(loc) == 0:
-               locList.append(loc)
-               return loc
-               break
+ 
 
     def start(self, numOfTurtle, numOfCoin):
         self.stepNum = 0
@@ -52,19 +44,26 @@ class Grid:
 
     def step(self, action, isTraining):
         self.stepNum = self.stepNum + 1
-        reward = self.updateState(action)
+        reward, realReward, isSuccess = self.updateState(action)
         flag = self.isTerminal(reward, isTraining)
-        #reward = calculate reward for newState
-        #set observation equal to newState
-        #state = newState
-        return reward, self.world, flag
+        return reward, self.world, flag, realReward, isSuccess
 
     def find(self, type):
+        res = []
         for y in range(0, self.width):
             for x in range(0, self.height):
                 if self.world[(x, y)] == type:
-                    return (x, y)
-        return (-1, -1)
+                    res.append((x, y))
+        return res
+    def getNewLoc(self, locList):
+        #WARNING! this function may not stop
+        while True:
+            locX = min(int(random.random()*self.width), self.width -1);
+            locY = min(int(random.random()*self.height), self.height -1);
+            loc = (locX, locY)
+            if locList.count(loc) == 0:
+               locList.append(loc)
+               return loc
 
     def dump(self):
         for y in range(0, self.width):
@@ -82,8 +81,14 @@ class Grid:
         return counter
         
     def isTerminal(self, reward, isTraining):
+        marioLocList = self.find(marioType) 
+        if marioLocList !=  []:
+            marioLoc = marioLocList[0]
+        else:
+            assert 0
+        monsterLoc = self.find(monsterType)
         if not isTraining:
-            if self.count(3) == 0: #no coins available
+            if self.count(coinType) == 0: #no coins available
                 return True
         if self.stepNum > 2000:
             return True
@@ -93,7 +98,9 @@ class Grid:
 
     def updateState(self, action):
         reward = -0.1
-        marioOldLoc = self.find(1)
+        marioLocList = self.find(marioType) 
+        if marioLocList !=  []:
+            marioOldLoc = marioLocList[0]
         self.world[marioOldLoc] = 0
 
         #move Monster

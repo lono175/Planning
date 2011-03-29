@@ -100,6 +100,11 @@ def Load(filename):
     import pickle
     input = open(filename, 'rb')
     return pickle.load(input)
+def Save(agent, filename): 
+    import pickle
+    output = open(filename, 'wb')
+    pickle.dump(agent, output)
+    output.close()
 import GridEnv
 import sys,pygame
 import copy #for copy objects
