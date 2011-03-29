@@ -213,6 +213,16 @@ class RelationalQ:
                                 if Q != 0:
                                     print (type, X, Y), action, ": ", Q
         
+    def dumpCoinAndGoalEx(self, agent):
+        for cX in range(-1, 2):
+            for cY in range(-1, 2):
+                for gX in range(-1, 2):
+                    for gY in range(-1, 2):
+                        keyX = (coinType, (cX, cY), (gX, gY))
+                        for action in self.actionList:
+                            Q = agent.getQ([keyX], action)
+                            if Q != 0:
+                                print (keyX), action, ": ", Q
     def dumpCoinAndGoal(self):
         for conf in [0]:
             print "Config:", conf
@@ -220,14 +230,25 @@ class RelationalQ:
                 for cY in range(-1, 2):
                     for gX in range(-1, 2):
                         for gY in range(-1, 2):
-                            keyX = (coinType, XType, cX)
-                            keyY = (coinType, YType, cY)
-                            goalX = (goalType, XType, gX)
-                            goalY= (goalType, YType, gY)
+                            keyX = (coinType, (cX, cY), (gX, gY))
                             for action in self.actionList:
-                                Q = self.agent[conf].getQ([keyX, keyY, goalX, goalY], action)
+                                Q = self.agent[conf].getQ([keyX], action)
                                 if Q != 0:
-                                    print (gX, gY, cX, cY), action, ": ", Q
+                                    print (keyX), action, ": ", Q
+        #for conf in [0]:
+            #print "Config:", conf
+            #for cX in range(-1, 2):
+                #for cY in range(-1, 2):
+                    #for gX in range(-1, 2):
+                        #for gY in range(-1, 2):
+                            #keyX = (coinType, XType, cX)
+                            #keyY = (coinType, YType, cY)
+                            #goalX = (goalType, XType, gX)
+                            #goalY= (goalType, YType, gY)
+                            #for action in self.actionList:
+                                #Q = self.agent[conf].getQ([keyX, keyY, goalX, goalY], action)
+                                #if Q != 0:
+                                    #print (gX, gY, cX, cY), action, ": ", Q
         
 
     def dump(self):

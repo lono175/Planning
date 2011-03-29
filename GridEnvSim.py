@@ -116,7 +116,7 @@ class Grid:
         if marioLoc[0] == self.objective[0] and marioLoc[1] == self.objective[1]:
             #print "goal reached"
             return True 
-        if self.stepNum > 1: #mario needs to acheive its goal in a very short time
+        if self.stepNum == 1: #mario needs to acheive its goal in a very short time
             #print "Too long"
             return True
         if reward == -30:
@@ -240,7 +240,7 @@ if __name__ == "__main__":
     objSet = (0, 1)
     monsterMoveProb = 0.3
     isEpisodeEnd = False
-    maxStep = 1000
+    maxStep = 2000
     frameRate = 5000
     isShow = False
     size = 800, 800
@@ -253,7 +253,7 @@ if __name__ == "__main__":
     screen = pygame.display.set_mode(size)
 
     actionList = ((0, 1), (0, -1), (1, 0), (-1, 0))
-    controller = RelationalQ.RelationalQ(0.1, 0.1, 0.9, actionList)
+    controller = RelationalQ.RelationalQ(0.05, 0.1, 0.9, actionList)
     env = Grid((discrete_size, discrete_size), size, actionList, monsterMoveProb)
 
     numOfTurtle = objSet[0]
@@ -309,9 +309,11 @@ if __name__ == "__main__":
                 pygame.display.flip()
         rewardList.append((prevStepCount, stepCount, episodeReward))
     print totalReward
-    for conf in controller.agent:
-        print controller.agent[conf].Q
-    controller.dumpObj()
+    #for conf in controller.agent:
+        #print controller.agent[conf].Q
+    #controller.dumpObj()
     controller.dumpCoinAndGoal()
+    controller.dumpCoinAndGoalEx(controller.prob)
+    controller.dumpCoinAndGoalEx(controller.realReward)
     Save(controller, 'smart.db')
     #print controller.agent

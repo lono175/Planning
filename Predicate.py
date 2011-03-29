@@ -35,6 +35,26 @@ def getNearObj(observation, type):
         res.append(obj[2]) 
     return tuple(res)
 
+def getLevel1Feature(ob):
+    marioLoc, monLoc, coinLoc, goalLoc = ob
+
+    feaList = []
+    #add mario Loc into it
+    #feaList.append((1, XType, marioLoc[0]))
+    #feaList.append((1, YType, marioLoc[1]))
+
+    assert( len(goalLoc) == 1)
+    goal = goalLoc[0]
+
+    #separate it into individual faetures
+    for loc in monLoc:
+        fea = (monsterType, loc, goal)
+        feaList.append(fea)
+
+    for loc in coinLoc:
+        fea = (coinType, loc, goal)
+        feaList.append(fea)
+    return feaList
 def getObjFeature(ob):
     marioLoc, monLoc, coinLoc, goalLoc = ob
 
@@ -127,7 +147,8 @@ def GetRelFeature( observation, monsterOrder, coinOrder):
     for coin in coinFea:
         for monster in monFea:
             for goal in goalFea:
-                res.append(getObjFeature((marioLoc, monster, coin, goal)))
+                #res.append(getObjFeature((marioLoc, monster, coin, goal))) buggy!!!
+                res.append(getLevel1Feature((marioLoc, monster, coin, goal)))
     if res == [[]]:
         res = []  #a little ugly here, it happens when monFea is empty or coinFea is empty
     return res
