@@ -27,6 +27,7 @@ class RelationalQ:
         self.agent = {}
         self.addAgent(0)
         self.realReward = LinearSARSA.LinearSARSA(self.alpha, self.epsilon, self.gamma, self.actionList, 0, self.dumpCount )
+        self.failedReward = LinearSARSA.LinearSARSA(self.alpha, self.epsilon, self.gamma, self.actionList, 0, self.dumpCount )
         initialPosCount = 1.0
         self.prob = ProbSARSA.ProbSARSA(self.actionList, initialPosCount, self.dumpCount )
 
@@ -37,30 +38,44 @@ class RelationalQ:
 
     def getLinkCost(self, observation, agent):
         key = self.getCurConf( observation)
-        fea = Predicate.GetRelFeatureLevel1(observation, key[0], key[1])
-        cost = {}
-        for action in self.actionList:
-            assert(len(fea) == 1)
-            cost[action] = agent.getQ(fea[0], action)
-
-        maxCost = -100000 #TODO: tempoaray solution
-        for v in cost:
-            if cost[v] > maxCost:
-               maxCost = cost[v]
+        fea = Predicate.GetRelFeatureLevel0(observation, key[0], key[1])
+        maxCost = agent.getQ(fea[0], self.getBestAction(observation))
         return maxCost
-
-    def getLinkProb(self, observation, agent):
+    def getLinkReward(self, observation, agent):
         key = self.getCurConf( observation)
         fea = Predicate.GetRelFeatureLevel1(observation, key[0], key[1])
-        prob = {}
+        maxCost = agent.getQ(fea[0], self.getBestAction(observation))
+        return maxCost
+
+    def getBestAction(self, observation):
+
+        #temporary solution
+        Q = self.getAllQ(observation)
+        #select the best action
+        v = []
         for action in self.actionList:
-            assert(len(fea) == 1)
-            prob[action] = agent.getProb(fea[0], action)
-        maxProb = 0 #TODO: tempoaray solution
-        for v in prob:
-            if prob[v] > maxProb:
-               maxProb = prob[v]
+            v.append(Q[action])
+        assert len(v) > 0
+        m = max(v)
+        select = int(random.random()*v.count(m))
+
+        i = 0
+        maxCount = 0
+        for value in v:
+            if value == m:
+                if maxCount == select:
+                    action = self.actionList[i]
+                    break
+                maxCount = maxCount + 1
+            i = i + 1
+        return action
+    def getLinkProb(self, observation, agent):
+        key = self.getCurConf( observation)
+        feaLevel1 = Predicate.GetRelFeatureLevel1(observation, key[0], key[1])
+        assert(len(feaLevel1) == 1)
+        maxProb = agent.getProb(feaLevel1[0], self.getBestAction(observation))
         return maxProb
+
 
 
     def getMaxQ(self, observation):
@@ -100,21 +115,21 @@ class RelationalQ:
         assert(len(fea) == 1)
         return self.prob.getProb(fea[0], action)
         
-    def getReward(self, observation, action):
+    def getRewardEx(self, observation, action, agent, GetFeature):
         marioLoc, objLoc = observation
         key = self.getCurConf( observation)
-        fea = Predicate.GetRelFeatureLevel1(observation, key[0], key[1])
+        fea = GetFeature(observation, key[0], key[1])
         assert(len(fea) == 1)
-        return self.realReward.getQ(fea[0], action)
+        return agent.getQ(fea[0], action)
 
-    def updateReward(self, observation, action, deltaQ):
+    def updateRewardEx(self, observation, action, deltaQ, agent, GetFeature):
         marioLoc, objLoc = observation
         #find current conf
         curConf = self.getCurConf(observation)
-        relFea = Predicate.GetRelFeatureLevel1(observation, curConf[0], curConf[1])
+        relFea = GetFeature(observation, curConf[0], curConf[1])
         assert (len(relFea) == 1) #there shall only one of it
         #self.addAgent(curConf)
-        self.realReward.updateQ(relFea[0], action, deltaQ)
+        agent.updateQ(relFea[0], action, deltaQ)
 
     def updateProb(self, observation, action, isSuccess):
         marioLoc, objLoc = observation
@@ -190,38 +205,49 @@ class RelationalQ:
     def step(self, reward, observation, realReward, isSuccess):
         newAction = self.selectAction(observation)
         
-        newQ = self.getQ(observation, newAction)
+        newQ = self.getRewardEx(observation, newAction, self.agent[0], Predicate.GetRelFeatureLevel0)
         if self.isUpdate == True:
             deltaQ = self.getDeltaQ(self.lastQ, reward, newQ)
-            self.updateQ( self.lastObservation, self.lastAction, deltaQ)
+            self.updateRewardEx( self.lastObservation, self.lastAction, deltaQ, self.agent[0], Predicate.GetRelFeatureLevel0)
 
             #update probabilistic model
             self.updateProb(self.lastObservation, self.lastAction, isSuccess)
 
             #update reward model
-            oldRealReward = self.getReward(self.lastObservation, self.lastAction)
-            deltaReward = realReward - oldRealReward
-            self.updateReward(self.lastObservation, self.lastAction, deltaReward)
-
+            if isSuccess:
+                oldRealReward = self.getRewardEx(self.lastObservation, self.lastAction, self.realReward, Predicate.GetRelFeatureLevel1)
+                deltaReward = realReward - oldRealReward
+                self.updateRewardEx( self.lastObservation, self.lastAction, deltaReward, self.realReward, Predicate.GetRelFeatureLevel1)
+            else:
+                #update the failed reward model
+                oldFailedReward = self.getRewardEx(self.lastObservation, self.lastAction, self.failedReward, Predicate.GetRelFeatureLevel1)
+                deltaReward = realReward - oldFailedReward
+                self.updateRewardEx( self.lastObservation, self.lastAction, deltaReward, self.failedReward, Predicate.GetRelFeatureLevel1)
 
         self.lastObservation = observation
         self.lastAction = newAction
         self.lastQ = newQ
         return newAction
 
-    def end(self, reward, realReward, isSuccess):
+    def end(self, internalReward, realReward, isSuccess):
         if self.isUpdate == True:
-            deltaQ = self.getDeltaQ(self.lastQ, reward, 0)
-            self.updateQ( self.lastObservation, self.lastAction, deltaQ)
+            deltaQ = self.getDeltaQ(self.lastQ, internalReward, 0)
+            self.updateRewardEx( self.lastObservation, self.lastAction, deltaQ, self.agent[0], Predicate.GetRelFeatureLevel0)
 
             #update probabilistic model
             oldProb = self.getProb(self.lastObservation, self.lastAction)
             self.updateProb(self.lastObservation, self.lastAction, isSuccess)
 
             #update reward model
-            oldRealReward = self.getReward(self.lastObservation, self.lastAction)
-            deltaReward = realReward - oldRealReward
-            self.updateReward(self.lastObservation, self.lastAction, deltaReward)
+            if isSuccess:
+                oldRealReward = self.getRewardEx(self.lastObservation, self.lastAction, self.realReward, Predicate.GetRelFeatureLevel1)
+                deltaReward = realReward - oldRealReward
+                self.updateRewardEx( self.lastObservation, self.lastAction, deltaReward, self.realReward, Predicate.GetRelFeatureLevel1)
+            else:
+                #update the failed reward model
+                oldFailedReward = self.getRewardEx(self.lastObservation, self.lastAction, self.failedReward, Predicate.GetRelFeatureLevel1)
+                deltaReward = realReward - oldFailedReward
+                self.updateRewardEx( self.lastObservation, self.lastAction, deltaReward, self.failedReward, Predicate.GetRelFeatureLevel1)
 
     def dumpObj(self):
         for conf in self.agent:

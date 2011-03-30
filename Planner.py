@@ -27,12 +27,17 @@ def GetPlanCost(inPath, objLoc, controller, isDump):
             #prob = 0
         #prob = prob/2
 
-        accProb = accProb * prob
-        reward = controller.getLinkCost(ob, controller.realReward)
+        reward = controller.getLinkReward(ob, controller.realReward)
+        failedReward = controller.getLinkReward(ob, controller.failedReward)
 
-        newQ = pow(0.95, step)*reward*accProb
+        newQ = pow(0.95, step)*accProb*(reward*prob + failedReward*(1-prob))
+
+        accProb = accProb * prob
         if isDump:
             print "newQ: ", newQ
+            print "failedReward: ",  failedReward
+            print "reward: ",  reward
+            print "prob", prob
         Q = Q + newQ
         prev = node
         step = step + 1
@@ -256,6 +261,8 @@ if __name__ == "__main__":
     #controller.dumpObjAndGoalEx(controller.prob, monsterType)
     #controller.dumpObjAndGoalEx(controller.realReward, coinType)
     #controller.dumpObjAndGoalEx(controller.realReward, monsterType)
+    #print ""
+    #controller.dumpObjAndGoalEx(controller.failedReward, monsterType)
 
     discrete_size = 8
     objSet = (2, 5)
