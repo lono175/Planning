@@ -1,7 +1,7 @@
 import networkx as nx
 import tool
 import math #for exp
-def GetPlanCost(inPath, objLoc, controller):
+def GetPlanCost(inPath, objLoc, controller, isDump):
     Q = 0
     accProb = 0
     path = inPath[:]
@@ -24,7 +24,8 @@ def GetPlanCost(inPath, objLoc, controller):
         reward = controller.getLinkCost(ob, controller.realReward)
 
         newQ = pow(0.95, step)*reward*math.exp(accProb)
-        #print "newQ: ", newQ
+        if isDump:
+            print "newQ: ", newQ
         Q = Q + newQ
         prev = node
         step = step + 1
@@ -73,7 +74,7 @@ def GetPlan(gridSize, marioLoc, objLoc, controller):
     maxQ = -1000000
     bestPath = []
     for goal in pathList:
-        Q = GetPlanCost(pathList[goal], objLoc, controller)
+        Q = GetPlanCost(pathList[goal], objLoc, controller, False)
         if Q > maxQ:
             maxQ = Q
             bestPath = pathList[goal]
@@ -202,8 +203,8 @@ def TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpiso
             #curPlanCounter = curPlanCounter - 1
 
             if isSuccess: #if not, just use the old plan
-                curPathCost = GetPlanCost(bestPath, objLoc, controller)
-                prevPathCost = GetPlanCost(prevPath, objLoc, controller)
+                curPathCost = GetPlanCost(bestPath, objLoc, controller, True)
+                prevPathCost = GetPlanCost(prevPath, objLoc, controller, True)
                 print "cur plan Cost: ", curPathCost
                 print "prev plan Cost: ", prevPathCost
                 if prevPathCost > 0.9*curPathCost:
@@ -235,20 +236,18 @@ def TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpiso
     return rewardList, controller
 if __name__ == "__main__":
     controller = Load('smart.db')
-    #gridSize = 5
-    #marioLoc = (0, 0)
-    #objLoc = [(3, 3,0), (3, 4, 4)]
-    #GetPlan(gridSize, marioLoc, objLoc, controller)
+    controller.dumpCoinAndGoalEx(controller.realReward)
 
-    discrete_size = 8
-    objSet = (0, 2)
-    monsterMoveProb = 0.3
-    isEpisodeEnd = True
-    maxStep = 5000
-    frameRate = 10
-    isShow = True
-    TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpisodeEnd, isShow, frameRate)
-    isShow = True
+    #discrete_size = 8
+    #objSet = (0, 2)
+    #monsterMoveProb = 0.3
+    #isEpisodeEnd = True
+    #maxStep = 5000
+    #frameRate = 10
+    #isShow = True
+    #TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpisodeEnd, isShow, frameRate)
+    #isShow = True
+
     #Save(controller, 'smart.db')
     #DG=nx.DiGraph()
     #DG.add_weighted_edges_from([(2,1,0.5), (3,1,0.1), (2, 3, 0.1)])
