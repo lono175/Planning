@@ -1,6 +1,13 @@
 import networkx as nx
 import tool
 import math #for exp
+import gridDef
+#import IPython #for debug
+monsterType = gridDef.monsterType
+coinType = gridDef.coinType
+XType = gridDef.XType
+YType = gridDef.YType
+goalType = gridDef.goalType
 def GetPlanCost(inPath, objLoc, controller, isDump):
     Q = 0
     accProb = 0
@@ -18,7 +25,7 @@ def GetPlanCost(inPath, objLoc, controller, isDump):
         #temporary solution
         if prob > 0:
             prob = 0
-        prob = prob*4
+        prob = prob/2
 
         accProb = accProb + prob
         reward = controller.getLinkCost(ob, controller.realReward)
@@ -41,6 +48,7 @@ def GetPlan(gridSize, marioLoc, objLoc, controller):
     for x in range(0, gridSize):
         for y in range(0, gridSize):
             loc = (x, y)
+
             for diff in diffGoal:
                 goal = (diff[0]+loc[0], diff[1]+loc[1])
                 if not goal[0]  in range(0, gridSize) or not goal[1] in range(0, gridSize):
@@ -76,12 +84,16 @@ def GetPlan(gridSize, marioLoc, objLoc, controller):
     maxQ = -1000000
     bestPath = []
     for goal in pathList:
+        
+        #cannot stay in the current state
+        if goal[0] == marioLoc[0] and goal[1] == marioLoc[1]:
+            continue
         Q = GetPlanCost(pathList[goal], objLoc, controller, False)
         if Q > maxQ:
             maxQ = Q
             bestPath = pathList[goal]
     #just reture the next node in the best path
-    print "path cost: ", maxQ
+    #print "path cost: ", maxQ
     return bestPath[0], bestPath
 #print bestPath
     #print maxQ
@@ -175,12 +187,13 @@ def TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpiso
         objLoc = tool.getObjLoc(world, gridSize)
         marioLoc = tool.getMarioLoc(world, gridSize)
         goal, bestPath = GetPlan(discrete_size, marioLoc, objLoc, controller)
+        #print "plan: ", bestPath
+
         dummy = bestPath.pop(0)
         prevPath = bestPath[:]
         goal = bestPath.pop(0)
-        #print "plan: ", bestPath
         #curPlanCounter = 3
-        print "goal: ", goal
+        #print "goal: ", goal
         objLocWithGoal = tool.addGoalLoc(objLoc, goal)
         ob = (marioLoc, objLocWithGoal)
         action = controller.start(ob)
@@ -209,7 +222,7 @@ def TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpiso
                 prevPathCost = GetPlanCost(prevPath, objLoc, controller, True)
                 print "cur plan Cost: ", curPathCost
                 print "prev plan Cost: ", prevPathCost
-                if prevPathCost > 0.9*curPathCost:
+                if prevPathCost > 0.9*curPathCost and len(prevPath) > 1:
                     #stay with old plan
                     print "stay with old plan"
                     bestPath = prevPath
@@ -218,13 +231,12 @@ def TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpiso
             prevPath = bestPath[:]
             goal = bestPath.pop(0)
                     
-            #goal, bestPath = GetPlan(discrete_size, marioLoc, objLoc, controller)
-            print "goal: ", goal
+            #print "goal: ", goal
             objLocWithGoal = tool.addGoalLoc(objLoc, goal)
             ob = (marioLoc, objLocWithGoal)
             allQ = controller.getAllQ(ob)
             print "allQ: ", allQ
-            print "internalReward: ", reward
+            #print "internalReward: ", reward
             action = controller.step(reward, ob, realReward, isSuccess)
             print "action: ", action
             for event in pygame.event.get():
@@ -234,18 +246,21 @@ def TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpiso
                 screen.blit(env.getScreen(), (0, 0))
                 pygame.display.flip()
         #rewardList.append((prevStepCount, stepCount, episodeReward))
-    print totalReward
+    #print totalReward
     return rewardList, controller
 if __name__ == "__main__":
     controller = Load('smart.db')
-    #controller.dumpCoinAndGoalEx(controller.realReward)
+    #controller.dumpObjAndGoalEx(controller.prob, coinType)
+    #controller.dumpObjAndGoalEx(controller.prob, monsterType)
+    #controller.dumpObjAndGoalEx(controller.realReward, coinType)
+    #controller.dumpObjAndGoalEx(controller.realReward, monsterType)
 
     discrete_size = 8
-    objSet = (0, 2)
+    objSet = (2, 5)
     monsterMoveProb = 0.3
     isEpisodeEnd = True
     maxStep = 5000
-    frameRate = 10
+    frameRate = 5
     isShow = True
     TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpisodeEnd, isShow, frameRate)
 

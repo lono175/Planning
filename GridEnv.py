@@ -55,7 +55,7 @@ class Grid:
         self.stepNum = self.stepNum + 1
         self.objective = goal
         reward, realReward, isSuccess = self.updateState(action)
-        flag = self.isTerminal(reward, isTraining)
+        flag = self.isTerminal(realReward, isTraining)
         return reward, self.world, flag, realReward, isSuccess
 
     def find(self, type):
@@ -102,7 +102,8 @@ class Grid:
                 return True
         if self.stepNum > 2000:
             return True
-        if reward == -30:
+        #print "reward", reward
+        if reward <= -30:
             return True
         return False
 
@@ -130,8 +131,11 @@ class Grid:
                     elif diffMon[1] < 0:
                         monAction = (0, -1)
                     monNewLoc =(monLoc[0]+monAction[0], monLoc[1]+monAction[1]) 
-                    self.world[monLoc] = 0
-                    self.world[monNewLoc] = monsterType
+
+                    #check if monster goes to the boundary
+                    if monNewLoc in self.world and self.world[monNewLoc] != coinType and self.world[monNewLoc] != monsterType :
+                        self.world[monLoc] = 0
+                        self.world[monNewLoc] = monsterType
 
         #move Mario
         if random.random() < 0.1:
@@ -142,7 +146,7 @@ class Grid:
 
         #check Mario stays in the boundary
         if not marioNewLoc in self.world:
-            reward = -2
+            realReward = realReward -2
             marioNewLoc = marioOldLoc
         #check if Mario eats coin
         if self.world[marioNewLoc] == coinType:
@@ -151,8 +155,10 @@ class Grid:
         #meet turtle
         isMarioAlive = True
         if self.world[marioNewLoc] == monsterType or self.world[marioOldLoc] == monsterType:
-            reward = realReward - 30
+            realReward = realReward - 60
+            internalReward = internalReward - 60
             isMarioAlive = False
+            #print "real Reward------------------------:", realReward
 
         isSuccess = False
         if marioNewLoc[0] == self.objective[0] and marioNewLoc[1] == self.objective[1]:

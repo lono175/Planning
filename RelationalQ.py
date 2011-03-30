@@ -228,12 +228,12 @@ class RelationalQ:
                                 if Q != 0:
                                     print (type, X, Y), action, ": ", Q
         
-    def dumpCoinAndGoalEx(self, agent):
+    def dumpObjAndGoalEx(self, agent, objType):
         for cX in range(-1, 2):
             for cY in range(-1, 2):
                 for gX in range(-1, 2):
                     for gY in range(-1, 2):
-                        keyX = (coinType, (cX, cY), (gX, gY))
+                        keyX = (objType, (cX, cY), (gX, gY))
                         for action in self.actionList:
                             Q = agent.getQ([keyX], action)
                             if Q != 0:

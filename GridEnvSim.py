@@ -60,7 +60,7 @@ class Grid:
     def step(self, action, isTraining):
         self.stepNum = self.stepNum + 1
         reward, realReward, isSuccess = self.updateState(action)
-        flag = self.isTerminal(reward, isTraining)
+        flag = self.isTerminal(realReward, isTraining)
         return reward, self.world, flag, realReward, isSuccess
 
     #def find(self, type):
@@ -119,7 +119,7 @@ class Grid:
         if self.stepNum == 1: #mario needs to acheive its goal in a very short time
             #print "Too long"
             return True
-        if reward == -30:
+        if reward <= -30:
             return True
 
         return False
@@ -151,8 +151,11 @@ class Grid:
                     elif diffMon[1] < 0:
                         monAction = (0, -1)
                     monNewLoc =(monLoc[0]+monAction[0], monLoc[1]+monAction[1]) 
-                    self.world[monLoc] = 0
-                    self.world[monNewLoc] = monsterType
+                    
+                    #check if monster goes to the boundary
+                    if monNewLoc in self.world and self.world[monNewLoc] != coinType and self.world[monNewLoc] != monsterType :
+                        self.world[monLoc] = 0
+                        self.world[monNewLoc] = monsterType
 
         #move Mario
         if random.random() < 0.1:
@@ -172,7 +175,8 @@ class Grid:
         #meet turtle
         isMarioAlive = True
         if self.world[marioNewLoc] == monsterType or self.world[marioOldLoc] == monsterType:
-            reward = realReward - 30
+            realReward = realReward - 60
+            internalReward = internalReward - 60
             isMarioAlive = False
 
         isSuccess = False
@@ -235,12 +239,12 @@ def Load(filename):
 import RelationalQ
 import tool
 if __name__ == "__main__":
-    confList = [(0, 1)]
+    #confList = [(0, 1)]
     discrete_size = 8
-    objSet = (0, 1)
+    objSet = (1, 1)
     monsterMoveProb = 0.3
     isEpisodeEnd = False
-    maxStep = 2000
+    maxStep = 5000
     frameRate = 5000
     isShow = False
     size = 800, 800
@@ -312,8 +316,8 @@ if __name__ == "__main__":
     #for conf in controller.agent:
         #print controller.agent[conf].Q
     #controller.dumpObj()
-    controller.dumpCoinAndGoal()
-    controller.dumpCoinAndGoalEx(controller.prob)
-    controller.dumpCoinAndGoalEx(controller.realReward)
+    #controller.dumpCoinAndGoal()
+    #controller.dumpCoinAndGoalEx(controller.prob)
+    #controller.dumpCoinAndGoalEx(controller.realReward)
     Save(controller, 'smart.db')
     #print controller.agent
