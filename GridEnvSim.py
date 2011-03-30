@@ -244,7 +244,7 @@ if __name__ == "__main__":
     objSet = (1, 1)
     monsterMoveProb = 0.3
     isEpisodeEnd = False
-    maxStep = 5000
+    maxStep = 10000
     frameRate = 5000
     isShow = False
     size = 800, 800
@@ -298,6 +298,7 @@ if __name__ == "__main__":
                 #print "episodeEnd: ", reward
                 controller.end(reward, realReward, isSuccess)
                 break
+            assert(False)
             objLoc = tool.getObjLoc(world, gridSize)
             marioLoc = tool.getMarioLoc(world, gridSize)
             objLocWithGoal = tool.addGoalLoc(objLoc, goal)

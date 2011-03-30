@@ -1,6 +1,7 @@
 import random
 #import RLSARSA
 import LinearSARSA
+import ProbSARSA
 import gridDef
 #import IPython #for debug
 monsterType = gridDef.monsterType
@@ -25,8 +26,9 @@ class RelationalQ:
         self.isUpdate = True
         self.agent = {}
         self.addAgent(0)
-        self.prob = LinearSARSA.LinearSARSA(self.alpha, self.epsilon, self.gamma, self.actionList, 0, self.dumpCount )
         self.realReward = LinearSARSA.LinearSARSA(self.alpha, self.epsilon, self.gamma, self.actionList, 0, self.dumpCount )
+        initialPosCount = 1.0
+        self.prob = ProbSARSA.ProbSARSA(self.actionList, initialPosCount, self.dumpCount )
 
     def addAgent(self, conf):
         key = conf
@@ -46,6 +48,19 @@ class RelationalQ:
             if cost[v] > maxCost:
                maxCost = cost[v]
         return maxCost
+
+    def getLinkProb(self, observation, agent):
+        key = self.getCurConf( observation)
+        fea = Predicate.GetRelFeatureLevel1(observation, key[0], key[1])
+        prob = {}
+        for action in self.actionList:
+            assert(len(fea) == 1)
+            prob[action] = agent.getProb(fea[0], action)
+        maxProb = 0 #TODO: tempoaray solution
+        for v in prob:
+            if prob[v] > maxProb:
+               maxProb = prob[v]
+        return maxProb
 
 
     def getMaxQ(self, observation):
@@ -83,7 +98,7 @@ class RelationalQ:
         key = self.getCurConf( observation)
         fea = Predicate.GetRelFeatureLevel1(observation, key[0], key[1])
         assert(len(fea) == 1)
-        return self.prob.getQ(fea[0], action)
+        return self.prob.getProb(fea[0], action)
         
     def getReward(self, observation, action):
         marioLoc, objLoc = observation
@@ -101,13 +116,13 @@ class RelationalQ:
         #self.addAgent(curConf)
         self.realReward.updateQ(relFea[0], action, deltaQ)
 
-    def updateProb(self, observation, action, deltaQ):
+    def updateProb(self, observation, action, isSuccess):
         marioLoc, objLoc = observation
         #find current conf
         curConf = self.getCurConf(observation)
         relFea = Predicate.GetRelFeatureLevel1(observation, curConf[0], curConf[1])
         assert (len(relFea) <= 1) #there shall only one of it
-        self.prob.updateQ(relFea[0], action, deltaQ)
+        self.prob.updateProb(relFea[0], action, isSuccess)
 
     def getCurConf(self, observation):
         marioLoc, objLoc = observation
@@ -181,12 +196,8 @@ class RelationalQ:
             self.updateQ( self.lastObservation, self.lastAction, deltaQ)
 
             #update probabilistic model
-            oldProb = self.getProb(self.lastObservation, self.lastAction)
-            if isSuccess:
-               deltaProb = 0 - oldProb
-            else:
-               deltaProb = -10 - oldProb
-            self.updateProb(self.lastObservation, self.lastAction, deltaProb)
+            self.updateProb(self.lastObservation, self.lastAction, isSuccess)
+
             #update reward model
             oldRealReward = self.getReward(self.lastObservation, self.lastAction)
             deltaReward = realReward - oldRealReward
@@ -205,14 +216,11 @@ class RelationalQ:
 
             #update probabilistic model
             oldProb = self.getProb(self.lastObservation, self.lastAction)
-            if isSuccess:
-               deltaProb = 0 - oldProb
-            else:
-               deltaProb = -10 - oldProb
-            self.updateProb(self.lastObservation, self.lastAction, deltaProb)
+            self.updateProb(self.lastObservation, self.lastAction, isSuccess)
+
             #update reward model
             oldRealReward = self.getReward(self.lastObservation, self.lastAction)
-            deltaReward = realReward + oldRealReward
+            deltaReward = realReward - oldRealReward
             self.updateReward(self.lastObservation, self.lastAction, deltaReward)
 
     def dumpObj(self):
@@ -236,6 +244,18 @@ class RelationalQ:
                         keyX = (objType, (cX, cY), (gX, gY))
                         for action in self.actionList:
                             Q = agent.getQ([keyX], action)
+                            if Q != 0:
+                                print (keyX), action, ": ", Q
+    def dumpObjAndGoalAndProb(self, agent, objType):
+        #print agent.posCount
+        for cX in range(-1, 2):
+            for cY in range(-1, 2):
+                for gX in range(-1, 2):
+                    for gY in range(-1, 2):
+                        keyX = (objType, (cX, cY), (gX, gY))
+                        for action in self.actionList:
+                            #Q = agent.getProb([keyX], action)
+                            Q = agent.getProb([keyX], action)
                             if Q != 0:
                                 print (keyX), action, ": ", Q
     def dumpCoinAndGoal(self):

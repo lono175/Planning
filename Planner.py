@@ -10,7 +10,7 @@ YType = gridDef.YType
 goalType = gridDef.goalType
 def GetPlanCost(inPath, objLoc, controller, isDump):
     Q = 0
-    accProb = 0
+    accProb = 1
     path = inPath[:]
     prev = path.pop(0) #remove the first one
     #print "--------------path: ", path
@@ -20,17 +20,17 @@ def GetPlanCost(inPath, objLoc, controller, isDump):
         objLocWithGoal = tool.addGoalLoc(objLoc, node)
         ob = (prev, objLocWithGoal)
         #print "observation: ", ob
-        prob = controller.getLinkCost(ob, controller.prob)
+        prob = controller.getLinkProb(ob, controller.prob)
 
         #temporary solution
-        if prob > 0:
-            prob = 0
-        prob = prob/2
+        #if prob > 0:
+            #prob = 0
+        #prob = prob/2
 
-        accProb = accProb + prob
+        accProb = accProb * prob
         reward = controller.getLinkCost(ob, controller.realReward)
 
-        newQ = pow(0.95, step)*reward*math.exp(accProb)
+        newQ = pow(0.95, step)*reward*accProb
         if isDump:
             print "newQ: ", newQ
         Q = Q + newQ
@@ -250,6 +250,8 @@ def TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpiso
     return rewardList, controller
 if __name__ == "__main__":
     controller = Load('smart.db')
+    #controller.dumpObjAndGoalAndProb(controller.prob, coinType)
+    #controller.dumpObjAndGoalAndProb(controller.prob, monsterType)
     #controller.dumpObjAndGoalEx(controller.prob, coinType)
     #controller.dumpObjAndGoalEx(controller.prob, monsterType)
     #controller.dumpObjAndGoalEx(controller.realReward, coinType)
