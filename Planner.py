@@ -1,8 +1,38 @@
 import networkx as nx
 import tool
 import math #for exp
+def GetPlanCost(inPath, objLoc, controller):
+    Q = 0
+    accProb = 0
+    path = inPath[:]
+    prev = path.pop(0) #remove the first one
+    #print "--------------path: ", path
+    step = 1
+    for node in path:
+        #print "goal: ", node
+        objLocWithGoal = tool.addGoalLoc(objLoc, node)
+        ob = (prev, objLocWithGoal)
+        #print "observation: ", ob
+        prob = controller.getLinkCost(ob, controller.prob)
+
+        #temporary solution
+        if prob > 0:
+            prob = 0
+        prob = prob*4
+
+        accProb = accProb + prob
+        reward = controller.getLinkCost(ob, controller.realReward)
+
+        newQ = pow(0.95, step)*reward*math.exp(accProb)
+        #print "newQ: ", newQ
+        Q = Q + newQ
+        prev = node
+        step = step + 1
+    return Q
+
+
 def GetPlan(gridSize, marioLoc, objLoc, controller):
-    
+
     diffGoal = ((0, 1), (0, -1), (1, 0), (-1, 0))
     DG=nx.DiGraph()
     #G=nx.path_graph(5)
@@ -13,7 +43,7 @@ def GetPlan(gridSize, marioLoc, objLoc, controller):
             for diff in diffGoal:
                 goal = (diff[0]+loc[0], diff[1]+loc[1])
                 if not goal[0]  in range(0, gridSize) or not goal[1] in range(0, gridSize):
-                   continue
+                    continue
                 objLocWithGoal = tool.addGoalLoc(objLoc, goal)
                 ob = (loc, objLocWithGoal)
                 #compute the link cost
@@ -21,7 +51,7 @@ def GetPlan(gridSize, marioLoc, objLoc, controller):
 
                 #temporary solution, log prob is max at 0
                 if linkCost > 0:
-                   linkCost = 0
+                    linkCost = 0
                 linkCost = -linkCost #need to be positive
                 #print maxQ
                 #assert(maxQ > -10) #don't handle monster
@@ -39,39 +69,18 @@ def GetPlan(gridSize, marioLoc, objLoc, controller):
     #print nx.shortest_path_length(DG, source = marioLoc, target = (4, 4), weighted=True)
 
     #follow the path and find the one with maximum reward
+
     maxQ = -1000000
     bestPath = []
     for goal in pathList:
-        Q = 0
-        accProb = 0
-        path = pathList[goal]
-        #print "--------------path: ", path
-        prev = path.pop(0) #remove the first one
-        for node in path:
-            #print "goal: ", node
-            objLocWithGoal = tool.addGoalLoc(objLoc, node)
-            ob = (prev, objLocWithGoal)
-            #print "observation: ", ob
-            prob = controller.getLinkCost(ob, controller.prob)
-
-            #temporary solution
-            if prob > 0:
-               prob = 0
-            prob = prob*4
-
-            accProb = accProb + prob
-            reward = controller.getLinkCost(ob, controller.realReward)
-
-            #print "nodeQ: ", nodeQ
-            Q = Q + reward*math.exp(accProb)
-            prev = node
-        #print "Q: ", Q
+        Q = GetPlanCost(pathList[goal], objLoc, controller)
         if Q > maxQ:
             maxQ = Q
-            bestPath = path
+            bestPath = pathList[goal]
     #just reture the next node in the best path
+    print "path cost: ", maxQ
     return bestPath[0], bestPath
-    #print bestPath
+#print bestPath
     #print maxQ
 
     #maxQ = -10000
@@ -149,12 +158,12 @@ def TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpiso
     print "isEpisodeEnd ", isEpisodeEnd
 
     count = 0
-    
+
     totalReward = 0
     rewardList = []
     stepCount = 0
     while stepCount < maxStep:
-    #for i in range(0, maxEpisode):
+        #for i in range(0, maxEpisode):
         #print totalReward
         #rewardList[i] = totalReward
 
@@ -163,42 +172,60 @@ def TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpiso
         objLoc = tool.getObjLoc(world, gridSize)
         marioLoc = tool.getMarioLoc(world, gridSize)
         goal, bestPath = GetPlan(discrete_size, marioLoc, objLoc, controller)
+        dummy = bestPath.pop(0)
+        prevPath = bestPath[:]
         goal = bestPath.pop(0)
         #print "plan: ", bestPath
-        curPlanCounter = 3
+        #curPlanCounter = 3
         print "goal: ", goal
         objLocWithGoal = tool.addGoalLoc(objLoc, goal)
         ob = (marioLoc, objLocWithGoal)
         action = controller.start(ob)
-            
+
         count += 1
         prevStepCount = stepCount
         while stepCount < maxStep:
             stepCount = stepCount + 1
             clock.tick(frameRate)
-            reward, world, flag = env.step(action, isTraining)
+            reward, world, flag, realReward, isSuccess = env.step(action, isTraining, goal)
             totalReward = totalReward + reward
 
             if flag:
-                controller.end(reward)
+                controller.end(reward, realReward, isSuccess)
                 break
             objLoc = tool.getObjLoc(world, gridSize)
             marioLoc = tool.getMarioLoc(world, gridSize)
-            if len(bestPath) == 0 or curPlanCounter == 0:
-                dummy, bestPath = GetPlan(discrete_size, marioLoc, objLoc, controller)
-                print "plan: ", bestPath
-            curPlanCounter = curPlanCounter - 1
+            print "-------------mario: ", marioLoc
+            #if len(bestPath) == 0 or curPlanCounter == 0:
+            dummy, bestPath = GetPlan(discrete_size, marioLoc, objLoc, controller)
+            print "plan: ", bestPath
+            #curPlanCounter = curPlanCounter - 1
+
+            if isSuccess: #if not, just use the old plan
+                curPathCost = GetPlanCost(bestPath, objLoc, controller)
+                prevPathCost = GetPlanCost(prevPath, objLoc, controller)
+                print "cur plan Cost: ", curPathCost
+                print "prev plan Cost: ", prevPathCost
+                if prevPathCost > 0.9*curPathCost:
+                    #stay with old plan
+                    print "stay with old plan"
+                    bestPath = prevPath
+                
+            dummy = bestPath.pop(0)
+            prevPath = bestPath[:]
             goal = bestPath.pop(0)
+                    
             #goal, bestPath = GetPlan(discrete_size, marioLoc, objLoc, controller)
             print "goal: ", goal
             objLocWithGoal = tool.addGoalLoc(objLoc, goal)
             ob = (marioLoc, objLocWithGoal)
             allQ = controller.getAllQ(ob)
             print "allQ: ", allQ
-            action = controller.step(reward, ob)
+            print "internalReward: ", reward
+            action = controller.step(reward, ob, realReward, isSuccess)
             print "action: ", action
             for event in pygame.event.get():
-               #action = 0
+                #action = 0
                if event.type == pygame.QUIT: sys.exit()
             if isShow:
                 screen.blit(env.getScreen(), (0, 0))
@@ -227,16 +254,16 @@ if __name__ == "__main__":
     #DG.add_weighted_edges_from([(2,1,0.5), (3,1,0.1), (2, 3, 0.1)])
     #G=nx.path_graph(5)
     #print G.nodes()
-    
+
     #print nx.shortest_path(DG,source=2,target=1)
     #print nx.shortest_path(DG,source=2,target=1, weighted=True)
-    
-    
+
+
     #G=nx.Graph()
     #G.add_nodes_from([2,3])
     #G.add_edge(1,2)
     #print G.nodes()
     #print G.edges()
-    
-    
-    
+
+
+

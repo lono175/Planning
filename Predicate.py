@@ -55,7 +55,7 @@ def getLevel1Feature(ob):
         fea = (coinType, loc, goal)
         feaList.append(fea)
     return feaList
-def getObjFeature(ob):
+def getLevel0Feature(ob):
     marioLoc, monLoc, coinLoc, goalLoc = ob
 
     feaList = []
@@ -64,28 +64,20 @@ def getObjFeature(ob):
     #feaList.append((1, YType, marioLoc[1]))
 
     #separate it into individual faetures
-    i = 0
     for loc in monLoc:
-        if i % 2 == 0:
-            fea = (monsterType, XType, loc)
-        else:
-            fea = (monsterType, YType, loc)
-        i = i + 1
+        fea = (monsterType, XType, loc[0])
         feaList.append(fea)
-    i = 0
+        fea = (monsterType, YType, loc[1])
+        feaList.append(fea)
     for loc in coinLoc:
-        if i % 2 == 0:
-            fea = (coinType, XType, loc)
-        else:
-            fea = (coinType, YType, loc)
-        i = i + 1
+        fea = (coinType, XType, loc[0])
+        feaList.append(fea)
+        fea = (coinType, YType, loc[1])
         feaList.append(fea)
     for loc in goalLoc:
-        if i % 2 == 0:
-            fea = (goalType, XType, loc)
-        else:
-            fea = (goalType, YType, loc)
-        i = i + 1
+        fea = (goalType, XType, loc[0])
+        feaList.append(fea)
+        fea = (goalType, YType, loc[1])
         feaList.append(fea)
     return feaList
 
@@ -137,7 +129,7 @@ def getFeature(observation, order, type):
     res = [coinList]
     return res
 
-def GetRelFeature( observation, monsterOrder, coinOrder):
+def GetRelFeatureLevel1( observation, monsterOrder, coinOrder):
     marioLoc, objLoc = observation
     coinFea = getFeature(observation, coinOrder, coinType)
     monFea = getFeature(observation, monsterOrder, monsterType)
@@ -149,6 +141,22 @@ def GetRelFeature( observation, monsterOrder, coinOrder):
             for goal in goalFea:
                 #res.append(getObjFeature((marioLoc, monster, coin, goal))) buggy!!!
                 res.append(getLevel1Feature((marioLoc, monster, coin, goal)))
+    if res == [[]]:
+        res = []  #a little ugly here, it happens when monFea is empty or coinFea is empty
+    return res
+
+def GetRelFeatureLevel0( observation, monsterOrder, coinOrder):
+    marioLoc, objLoc = observation
+    coinFea = getFeature(observation, coinOrder, coinType)
+    monFea = getFeature(observation, monsterOrder, monsterType)
+    goalFea = getFeature(observation, 1, goalType)
+    
+    res = []
+    for coin in coinFea:
+        for monster in monFea:
+            for goal in goalFea:
+                #res.append(getObjFeature((marioLoc, monster, coin, goal))) buggy!!!
+                res.append(getLevel0Feature((marioLoc, monster, coin, goal)))
     if res == [[]]:
         res = []  #a little ugly here, it happens when monFea is empty or coinFea is empty
     return res

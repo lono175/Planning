@@ -35,7 +35,7 @@ class RelationalQ:
 
     def getLinkCost(self, observation, agent):
         key = self.getCurConf( observation)
-        fea = Predicate.GetRelFeature(observation, key[0], key[1])
+        fea = Predicate.GetRelFeatureLevel1(observation, key[0], key[1])
         cost = {}
         for action in self.actionList:
             assert(len(fea) == 1)
@@ -70,7 +70,7 @@ class RelationalQ:
         Q = 0
 
         key = self.getCurConf( observation)
-        fea = Predicate.GetRelFeature(observation, key[0], key[1])
+        fea = Predicate.GetRelFeatureLevel0(observation, key[0], key[1])
         assert(len(fea) == 1)
         Q = self.agent[0].getQ(fea[0], action)
         #for key in self.agent:
@@ -81,14 +81,14 @@ class RelationalQ:
     def getProb(self, observation, action):
         marioLoc, objLoc = observation
         key = self.getCurConf( observation)
-        fea = Predicate.GetRelFeature(observation, key[0], key[1])
+        fea = Predicate.GetRelFeatureLevel1(observation, key[0], key[1])
         assert(len(fea) == 1)
         return self.prob.getQ(fea[0], action)
         
     def getReward(self, observation, action):
         marioLoc, objLoc = observation
         key = self.getCurConf( observation)
-        fea = Predicate.GetRelFeature(observation, key[0], key[1])
+        fea = Predicate.GetRelFeatureLevel1(observation, key[0], key[1])
         assert(len(fea) == 1)
         return self.realReward.getQ(fea[0], action)
 
@@ -96,7 +96,7 @@ class RelationalQ:
         marioLoc, objLoc = observation
         #find current conf
         curConf = self.getCurConf(observation)
-        relFea = Predicate.GetRelFeature(observation, curConf[0], curConf[1])
+        relFea = Predicate.GetRelFeatureLevel1(observation, curConf[0], curConf[1])
         assert (len(relFea) == 1) #there shall only one of it
         #self.addAgent(curConf)
         self.realReward.updateQ(relFea[0], action, deltaQ)
@@ -105,7 +105,7 @@ class RelationalQ:
         marioLoc, objLoc = observation
         #find current conf
         curConf = self.getCurConf(observation)
-        relFea = Predicate.GetRelFeature(observation, curConf[0], curConf[1])
+        relFea = Predicate.GetRelFeatureLevel1(observation, curConf[0], curConf[1])
         assert (len(relFea) <= 1) #there shall only one of it
         self.prob.updateQ(relFea[0], action, deltaQ)
 
@@ -166,7 +166,7 @@ class RelationalQ:
         marioLoc, objLoc = observation
         #find current conf
         curConf = self.getCurConf(observation)
-        relFea = Predicate.GetRelFeature(observation, curConf[0], curConf[1])
+        relFea = Predicate.GetRelFeatureLevel0(observation, curConf[0], curConf[1])
         assert (len(relFea) <= 1) #there shall only one of it
         if len(relFea) == 1:
             #self.addAgent(curConf)

@@ -18,6 +18,7 @@ class Grid:
         #Mario is 1
         #turtle is 2
         #coin is 3
+        #goal is 4
         #empty tile is 0
         self.world = {}
 
@@ -42,7 +43,7 @@ class Grid:
         #add mario
         self.world[self.getNewLoc(locList)] = 1
         #print self.getNewLoc(locList)
-
+        #self.objective = (subgoal[0] + marioLoc[0], subgoal[1] + marioLoc[1])
         self.mario = pygame.image.load("mario.bmp")
         self.coin = pygame.image.load("coin.bmp")
         self.turtle = pygame.image.load("turtle.bmp")
@@ -50,8 +51,9 @@ class Grid:
 
         return self.world
 
-    def step(self, action, isTraining):
+    def step(self, action, isTraining, goal):
         self.stepNum = self.stepNum + 1
+        self.objective = goal
         reward, realReward, isSuccess = self.updateState(action)
         flag = self.isTerminal(reward, isTraining)
         return reward, self.world, flag, realReward, isSuccess
@@ -105,29 +107,31 @@ class Grid:
         return False
 
     def updateState(self, action):
-        reward = -0.1
+        realReward = -0.1
+        internalReward = -0.1
         marioLocList = self.find(marioType) 
         if marioLocList !=  []:
             marioOldLoc = marioLocList[0]
         self.world[marioOldLoc] = 0
 
         #move Monster
-        if random.random() < self.monsterMoveProb:
-            monLoc = self.find(2)
-
-            diffMon = (marioOldLoc[0] - monLoc[0], marioOldLoc[1] - monLoc[1])
-            monAction = (0, 0)
-            if diffMon[0] > 0:
-                monAction = (1, 0)
-            elif diffMon[1] > 0:
-                monAction = (0, 1)
-            elif diffMon[0] < 0:
-                monAction = (-1, 0)
-            elif diffMon[1] < 0:
-                monAction = (0, -1)
-            monNewLoc =(monLoc[0]+monAction[0], monLoc[1]+monAction[1]) 
-            self.world[monLoc] = 0
-            self.world[monNewLoc] = 2
+        monLocList = self.find(monsterType)
+        if monLocList != []:
+            for monLoc in monLocList:
+                if random.random() < self.monsterMoveProb:
+                    diffMon = (marioOldLoc[0] - monLoc[0], marioOldLoc[1] - monLoc[1])
+                    monAction = (0, 0)
+                    if diffMon[0] > 0:
+                        monAction = (1, 0)
+                    elif diffMon[1] > 0:
+                        monAction = (0, 1)
+                    elif diffMon[0] < 0:
+                        monAction = (-1, 0)
+                    elif diffMon[1] < 0:
+                        monAction = (0, -1)
+                    monNewLoc =(monLoc[0]+monAction[0], monLoc[1]+monAction[1]) 
+                    self.world[monLoc] = 0
+                    self.world[monNewLoc] = monsterType
 
         #move Mario
         if random.random() < 0.1:
@@ -141,32 +145,23 @@ class Grid:
             reward = -1
             marioNewLoc = marioOldLoc
         #check if Mario eats coin
-        if self.world[marioNewLoc] == 3:
-            reward = 20
-        elif self.world[marioNewLoc] == 2 or self.world[marioOldLoc] == 2:
-            #meet turtle
-            reward = -30
-        self.world[marioNewLoc] = 1
-        return reward
+        if self.world[marioNewLoc] == coinType:
+            realReward = realReward + 20
 
-    #def getSarsaFeature(self):
-        #marioLoc = (-1, -1)
-        #coinLoc = (-1, -1)
-        #monsterLoc = (-1, -1)
-        #observation = self.world
-        #for y in range(0, self.height):
-            #for x in range(0, self.width):
-                #key = (x, y)
-                #if(observation[key] == 1):
-                    #marioLoc = key
-        #for y in range(0, self.height):
-            #for x in range(0, self.width):
-                #key = (x, y)
-                #if(observation[key] == 2):
-                    #monsterLoc = (key[0] - marioLoc[0], key[1] - marioLoc[1])
-                #elif (observation[key] == 3):
-                    #coinLoc = (key[0] - marioLoc[0], key[1] - marioLoc[1])
-        #return (marioLoc[0], marioLoc[1], monsterLoc[0], monsterLoc[1], coinLoc[0], coinLoc[1])
+        #meet turtle
+        isMarioAlive = True
+        if self.world[marioNewLoc] == monsterType or self.world[marioOldLoc] == monsterType:
+            reward = realReward - 30
+            isMarioAlive = False
+
+        isSuccess = False
+        if marioNewLoc[0] == self.objective[0] and marioNewLoc[1] == self.objective[1]:
+            if isMarioAlive:
+                isSuccess = True
+                #add a small reward to reward the agent who reaches the subgoal
+                internalReward = internalReward + 20
+        self.world[marioNewLoc] = 1
+        return internalReward, realReward, isSuccess
 
     def getScreen(self):
         white = 255,255,255
