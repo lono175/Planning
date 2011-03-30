@@ -107,8 +107,8 @@ class Grid:
         return False
 
     def updateState(self, action):
-        realReward = -0.1
-        internalReward = -0.1
+        realReward = -0.5
+        internalReward = -0.5
         marioLocList = self.find(marioType) 
         if marioLocList !=  []:
             marioOldLoc = marioLocList[0]
@@ -142,7 +142,7 @@ class Grid:
 
         #check Mario stays in the boundary
         if not marioNewLoc in self.world:
-            reward = -1
+            reward = -2
             marioNewLoc = marioOldLoc
         #check if Mario eats coin
         if self.world[marioNewLoc] == coinType:

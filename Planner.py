@@ -48,15 +48,17 @@ def GetPlan(gridSize, marioLoc, objLoc, controller):
                 objLocWithGoal = tool.addGoalLoc(objLoc, goal)
                 ob = (loc, objLocWithGoal)
                 #compute the link cost
-                linkCost = controller.getLinkCost(ob, controller.prob)
+                #linkCost = controller.getLinkCost(ob, controller.prob)
 
                 #temporary solution, log prob is max at 0
-                if linkCost > 0:
-                    linkCost = 0
-                linkCost = -linkCost #need to be positive
+                #if linkCost > 0:
+                    #linkCost = 0
+                #linkCost = -linkCost #need to be positive
+
                 #print maxQ
                 #assert(maxQ > -10) #don't handle monster
-                #linkCost = 1 / pow(2, (1 + maxQ))
+                linkCost = controller.getLinkCost(ob, controller.agent[0])
+                linkCost = 1 / pow(2, (linkCost))
                 DG.add_weighted_edges_from([(loc, goal, linkCost)])
 
     #for x in range(0, gridSize):
@@ -236,17 +238,16 @@ def TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpiso
     return rewardList, controller
 if __name__ == "__main__":
     controller = Load('smart.db')
-    controller.dumpCoinAndGoalEx(controller.realReward)
+    #controller.dumpCoinAndGoalEx(controller.realReward)
 
-    #discrete_size = 8
-    #objSet = (0, 2)
-    #monsterMoveProb = 0.3
-    #isEpisodeEnd = True
-    #maxStep = 5000
-    #frameRate = 10
-    #isShow = True
-    #TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpisodeEnd, isShow, frameRate)
-    #isShow = True
+    discrete_size = 8
+    objSet = (0, 2)
+    monsterMoveProb = 0.3
+    isEpisodeEnd = True
+    maxStep = 5000
+    frameRate = 10
+    isShow = True
+    TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpisodeEnd, isShow, frameRate)
 
     #Save(controller, 'smart.db')
     #DG=nx.DiGraph()

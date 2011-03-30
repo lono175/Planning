@@ -189,7 +189,7 @@ class RelationalQ:
             self.updateProb(self.lastObservation, self.lastAction, deltaProb)
             #update reward model
             oldRealReward = self.getReward(self.lastObservation, self.lastAction)
-            deltaReward = realReward + oldRealReward
+            deltaReward = realReward - oldRealReward
             self.updateReward(self.lastObservation, self.lastAction, deltaReward)
 
 

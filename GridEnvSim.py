@@ -125,8 +125,8 @@ class Grid:
         return False
 
     def updateState(self, action):
-        realReward = -0.1
-        internalReward = -0.1
+        realReward = -0.5
+        internalReward = -0.5
         marioLocList = self.find(marioType) 
         if marioLocList !=  []:
             marioOldLoc = marioLocList[0]
