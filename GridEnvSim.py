@@ -244,7 +244,7 @@ if __name__ == "__main__":
     objSet = (1, 1)
     monsterMoveProb = 0.3
     isEpisodeEnd = False
-    maxStep = 10000
+    maxStep = 4000
     frameRate = 5000
     isShow = False
     size = 800, 800

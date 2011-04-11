@@ -269,7 +269,7 @@ if __name__ == "__main__":
     monsterMoveProb = 0.3
     isEpisodeEnd = True
     maxStep = 5000
-    frameRate = 5
+    frameRate = 8
     isShow = True
     TestRun(controller, discrete_size, monsterMoveProb, objSet, maxStep, isEpisodeEnd, isShow, frameRate)
 
