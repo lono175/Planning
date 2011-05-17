@@ -1,3 +1,4 @@
+walltype = 5
 monsterType = 2
 coinType = 3
 marioType = 1

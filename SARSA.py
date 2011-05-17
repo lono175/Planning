@@ -55,14 +55,16 @@ class SARSA:
         #if highest valued action valueFunction(observation,a)
         #then store a as lastAction
         #return self.lastAction
-    def step(self, reward, observation, isUpdate):
+    def step(self, reward, observation):
+        isUpdate = True
         newAction = self.selectAction(observation)
         if isUpdate:
             self.update(self.lastObservation, self.lastAction, reward, observation, newAction)
         self.lastObservation = observation
         self.lastAction = newAction
         return newAction
-    def end(self, reward, isUpdate):
+    def end(self, reward):
+        isUpdate = True
         if isUpdate:
             self.updateQ(self.lastObservation, self.lastAction, reward, 0)
     

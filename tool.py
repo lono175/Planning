@@ -24,3 +24,13 @@ def addGoalLoc(objLoc, goal):
     newObjLoc.append((4, goal[0], goal[1]))
     return newObjLoc
 
+def Save(agent, filename): 
+    import pickle
+    output = open(filename, 'wb')
+    pickle.dump(agent, output)
+    output.close()
+
+def Load(filename):
+    import pickle
+    input = open(filename, 'rb')
+    return pickle.load(input)
