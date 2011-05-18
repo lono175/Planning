@@ -46,6 +46,9 @@ class SARSA:
     def updateQ(self, lastObservation, lastAction, reward, newQVal):
         key = (lastObservation, lastAction)
         self.Q[key] = self.Q[key] + self.alpha*(reward + self.gamma * newQVal - self.Q[key])
+    def getQ(self, lastObservation, lastAction):
+        key = (lastObservation, lastAction)
+        return self.Q[key]
     def start(self, observation):
         self.lastObservation = observation
         self.lastAction = self.selectAction(observation)
