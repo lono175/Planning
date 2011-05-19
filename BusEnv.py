@@ -76,10 +76,13 @@ class BusEnv:
     def getSarsaFeature(self):
 
         marioLoc = self.getMarioLoc()
+
+        #print "marioLoc", marioLoc
+        #print self.world
         #check if the passenger is there or not
         pasInfo = []
         for pas in stop:
-            if world[pas] != coinType:
+            if self.world[pas] != coinType:
                 pasInfo.append(0)
             else:
                 pasInfo.append(1)
@@ -156,9 +159,9 @@ class BusEnv:
         self.world[marioOldLoc] = 0
 
         #move Mario
-        if random.random() < 0.1:
+        #if random.random() < 0.1:
             #select randomly
-            action = self.actionList[int(random.random()*len(self.actionList))]
+            #action = self.actionList[int(random.random()*len(self.actionList))]
 
         marioNewLoc = (marioOldLoc[0]+action[0], marioOldLoc[1]+action[1])
 
@@ -167,7 +170,7 @@ class BusEnv:
             marioNewLoc = marioOldLoc
 
         #check Mario is blocked by the monster
-        if world[marioNewLoc] == monsterType :
+        if self.world[marioNewLoc] == monsterType:
             marioNewLoc = marioOldLoc
 
         if self.isBlockedByWall(marioNewLoc, marioOldLoc):
@@ -237,15 +240,15 @@ import SARSA
 import HORDQ
 import RMax
 import tool
-if __name__ == "__main__":
-    #confList = [(0, 1)]
+
+def BusRun(type, punishment, maxStep):
     discrete_size = 6
     objSet = (1, 1)
     monsterMoveProb = 0.3
     isEpisodeEnd = False
-    maxStep = 200000
-    frameRate = 2
-    isShow = True
+    #maxStep = 200000
+    frameRate = 50000
+    isShow = False
     size = 800, 800
     gridSize = (discrete_size, discrete_size)
     delay = 100
@@ -258,15 +261,16 @@ if __name__ == "__main__":
     actionList = ((0, 1), (0, -1), (1, 0), (-1, 0))
     #controller = RelationalQ.RelationalQ(0.05, 0.1, 0.9, actionList)
     alpha = 0.2
+    probAlpha = 0.1
     epsilon = 0.1
     gamma = 1
-    #controller = SARSA.SARSA(alpha, epsilon, gamma, actionList)
-
-    punishment = 0
-    #hordQ = HORDQ.HORDQ(alpha, epsilon, gamma, actionList)
-    #probQ = SARSA.SARSA(alpha, epsilon, gamma, [0])
-    #controller = RMax.RMax(epsilon, gamma, hordQ, probQ, punishment)
-    controller = tool.Load('smart.db')
+    if type == 'SARSA':
+        controller = SARSA.SARSA(alpha, epsilon, gamma, actionList)
+    else:
+        hordQ = HORDQ.HORDQ(alpha, epsilon, gamma, actionList)
+        probQ = SARSA.SARSA(probAlpha, epsilon, gamma, [0])
+        controller = RMax.RMax(epsilon, gamma, hordQ, probQ, punishment)
+    #controller = tool.Load('smart.db')
     env = BusEnv((discrete_size, discrete_size), size, actionList)
 
     numOfTurtle = objSet[0]
@@ -293,6 +297,8 @@ if __name__ == "__main__":
         prevStepCount = stepCount
         episodeReward = 0
         while stepCount < maxStep:
+            if stepCount % 1000 == 0:
+                print "Time: ", stepCount / 1000
             stepCount = stepCount + 1
             clock.tick(frameRate)
             reward, flag = env.step(action)
@@ -318,5 +324,15 @@ if __name__ == "__main__":
     #controller.dumpCoinAndGoal()
     #controller.dumpCoinAndGoalEx(controller.prob)
     #controller.dumpCoinAndGoalEx(controller.realReward)
-    tool.Save(controller, 'smart.db')
+    tool.Save(controller, type)
+    tool.Save(rewardList, 'reward_'+type)
+    #tool.Save(controller, 'smart.db')
+    #tool.Save(rewardList, 'reward_pun_10')
     #print controller.agent
+if __name__ == "__main__":
+    maxStep = 100000
+    BusRun('SARSA', 0, maxStep)
+    BusRun('pun0', 0, maxStep)
+    #BusRun('pun2', 2, maxStep)
+    #BusRun('pun5', 5, maxStep)
+    #BusRun('pun10', 10, maxStep)

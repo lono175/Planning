@@ -28,8 +28,8 @@ class RMax:
     def getRoom(self, ob):
         loc = self.getLoc(ob)
         y = loc[1]/2
-        id = int(pow(2, y - 1))
         x = loc[0]/3
+        id = int(pow(2, y))
         id = id + x
         return id
          
@@ -78,6 +78,7 @@ class RMax:
         curRoom = self.getRoom(observation)
         self.lastAction = nextRoom = self.selectAction(observation)
         action = self.hordq.start(((curRoom, nextRoom), observation))
+        self.lastPrimitiveAction = action #debug only
         return action
 
     def getQ(self, lastObservation, lastAction):
@@ -92,10 +93,14 @@ class RMax:
                 maxQ = Q
         return maxQ
 
+    def dumpProb():
+        #status = [0, 0, 0]
+
+        print "1->2:", self.probQ.getQ(((0, 0, 0, (1, 1)), (0, 0, 0, (1, 2))), 2)
             
     def updateModel(self, ob, lastOb, lastAction):
         #update probability model
-        probKey = (ob, lastOb)
+        probKey = (lastOb, ob)
         self.probQ.touch(probKey, lastAction)
         self.probQ.updateQ(probKey, lastAction, 1, 0) #gamma for probQ is not useful here
 
@@ -108,8 +113,9 @@ class RMax:
 
         for state in self.adjState[lastOb]:
             if state != ob:
-                self.probQ.touch((state, lastOb), lastAction)
-                self.probQ.updateQ((state, lastOb), lastAction, 0, 0) #gamma for probQ is not useful here
+                tmpProbKey = (lastOb, state)
+                self.probQ.touch(tmpProbKey, lastAction)
+                self.probQ.updateQ(tmpProbKey, lastAction, 0, 0) #gamma for probQ is not useful here
 
         #update Q value        
         for i in range(0, 5):
@@ -122,7 +128,7 @@ class RMax:
                     r = self.hordq.getVc((actionR, state))
                     c = 0
                     for adj in self.adjState[state]:
-                        tmpKey = (adj, state)
+                        tmpKey = (state, adj)
                         self.probQ.touch(tmpKey, action)
 
                         prob = self.probQ.getQ(tmpKey, action)
@@ -153,14 +159,26 @@ class RMax:
             if curRoom == self.lastAction:
                #achieve the subgoal 
                internalReward = reward
+
             else:
                #mission failed. punish the agent
                internalReward = reward - self.punishment
+               #curLoc = self.getLoc(observation)
+               #prevLoc = self.getLoc(self.lastObservation)
+               #print "move: ",prevLoc, "->", curLoc, " ", self.lastPrimitiveAction, " reward ", internalReward
+               #print "move: ",lastRoom, "->", curRoom, " ", self.lastAction, " reward ", internalReward
+
+            #debugging
+            #curLoc = self.getLoc(observation)
+            #prevLoc = self.getLoc(self.lastObservation)
+            #print "move: ",prevLoc, "->", curLoc, " ", self.lastPrimitiveAction, " reward ", internalReward
+            #print "move: ",lastRoom, "->", curRoom, " ", self.lastAction, " reward ", internalReward
 
             primitiveAction = self.hordq.step(reward, ((curRoom, action), observation), internalReward)
 
             self.lastObservation = observation
             self.lastAction = action
+        self.lastPrimitiveAction = primitiveAction #debug only
         return primitiveAction
 
     def end(self, reward):

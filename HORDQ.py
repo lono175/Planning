@@ -74,7 +74,7 @@ class HORDQ:
         newTask, newState = observation
         newQe = self.Qe[(observation, action)]
         newQc = self.Qc[(observation, action)]
-        newpQc = self.Qc[(observation, action)]
+        newpQc = self.pQc[(observation, action)]
         newQ = newQe + newQc
 
         key = (lastObservation, lastAction)
