@@ -241,7 +241,7 @@ import HORDQ
 import RMax
 import tool
 
-def BusRun(type, punishment, maxStep, isRORDQ):
+def BusRun(type, punishment, maxStep, isRORDQ, isRandomPlanner):
     discrete_size = 6
     objSet = (1, 1)
     monsterMoveProb = 0.3
@@ -271,7 +271,9 @@ def BusRun(type, punishment, maxStep, isRORDQ):
         #isRORDQ = True
         hordQ = HORDQ.HORDQ(alpha, epsilon, gamma, actionList, isRORDQ)
         probQ = SARSA.SARSA(probAlpha, epsilon, gamma, [0])
-        controller = RMax.RMax(epsilon, gamma, hordQ, probQ, punishment)
+        if isRandomPlanner:
+            epsilon = 1
+            controller = RMax.RMax(epsilon, gamma, hordQ, probQ, punishment)
     #controller = tool.Load('smart.db')
     env = BusEnv((discrete_size, discrete_size), size, actionList)
 
@@ -332,10 +334,13 @@ def BusRun(type, punishment, maxStep, isRORDQ):
     #tool.Save(rewardList, 'reward_pun_10')
     #print controller.agent
 if __name__ == "__main__":
-    maxStep = 50000
+    #compare with RORDQ with random plannar
+    #compare with HORDQ with random plannar
+    maxStep = 300000
     isRORDQ = False
-    BusRun('SARSA', 0, maxStep, isRORDQ)
-    BusRun('pun0', 0, maxStep, isRORDQ)
-    BusRun('pun2', 2, maxStep, isRORDQ)
-    BusRun('pun5', 5, maxStep, isRORDQ)
-    BusRun('pun10', 10, maxStep, isRORDQ)
+    isRandomPlanner = True
+    BusRun('SARSA', 0, maxStep, isRORDQ, isRandomPlanner)
+    BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner)
+    BusRun('pun2', 2, maxStep, isRORDQ, isRandomPlanner)
+    BusRun('pun5', 5, maxStep, isRORDQ, isRandomPlanner)
+    BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner)

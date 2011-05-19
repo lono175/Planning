@@ -23,12 +23,7 @@ for i = 1:length(fileList)
 end
 xlabel('# steps')
 ylabel('reward per episode')
-%legend(
-            %'reward_sarsa',
-            %'reward_pun0',
-            %'reward_pun2',
-            %'reward_pun5'
-    %)
+legend( 'reward sarsa', 'reward pun0', 'reward pun2', 'reward pun5', 'reward pun10')
 %load('conv.csv')
 %SARSA = conv;
 %load('RRL_conv.csv')
