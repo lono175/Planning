@@ -2,8 +2,8 @@ import random
 
 # observation format: (1, 0, 1, (x, y))
 class RMax:
-    def __init__(self, epsilon, gamma, hordQ, probQ):
-        self.punishment = 10 #the punishment is Integer[0, inf)
+    def __init__(self, epsilon, gamma, hordQ, probQ, punishment):
+        self.punishment = punishment #the punishment is Integer[0, inf)
         self.epsilon = epsilon
         self.gamma = gamma
         self.hordq = hordQ
@@ -112,22 +112,27 @@ class RMax:
                 self.probQ.updateQ((state, lastOb), lastAction, 0, 0) #gamma for probQ is not useful here
 
         #update Q value        
-        for i in range(0, 2):
+        for i in range(0, 5):
             for state in self.adjState:
                 actionList = self.getActionList(state)
                 room = self.getRoom(state)
                 for action in actionList:
                     actionR = (room, action) 
-                    r = self.hordq.getQc(state, actionR)
+                    self.hordq.touchAll((actionR, state))
+                    r = self.hordq.getVc((actionR, state))
                     c = 0
                     for adj in self.adjState[state]:
-                        self.probQ.touch((adj, state), actionR)
-                        prob = self.probQ.getQ((adj, state), actionR)
+                        tmpKey = (adj, state)
+                        self.probQ.touch(tmpKey, action)
+
+                        prob = self.probQ.getQ(tmpKey, action)
                         self.touchAll(adj)
                         v = self.getV(adj)
                         c = c + prob*v
+
                     #the Bellman's equation
-                    self.Q[(state, action)] = c + r
+                    self.Q[(state, action)] = self.gamma*c + r
+
 
     def step(self, reward, observation):
         lastRoom = self.getRoom(self.lastObservation)
@@ -136,7 +141,7 @@ class RMax:
         #check for termination of subtask
         if lastRoom == curRoom:
             #continue execute last action
-            primitiveAction = self.hordq.step(reward, (self.lastAction, observation), reward)
+            primitiveAction = self.hordq.step(reward, ((curRoom, self.lastAction), observation), reward)
         else:
             #update model
             self.updateModel(observation, self.lastObservation, self.lastAction)
@@ -152,7 +157,7 @@ class RMax:
                #mission failed. punish the agent
                internalReward = reward - self.punishment
 
-            primitiveAction = self.hordq.step(reward, (action, observation), internalReward)
+            primitiveAction = self.hordq.step(reward, ((curRoom, action), observation), internalReward)
 
             self.lastObservation = observation
             self.lastAction = action
@@ -169,7 +174,7 @@ if __name__ == "__main__":
 
     alpha = 0.2
     epsilon = 0.1
-    gamma = 0.99
+    gamma = 0.9
     ob = (-1, -1, -1, (1, 2))
     ob2 = (-1, -1, -1, (5, 4))
     ob3 = (-1, -1, -1, (0, 0))
@@ -177,14 +182,14 @@ if __name__ == "__main__":
     probQ = SARSA.SARSA(alpha, epsilon, gamma, [1, -1])
     controller = RMax(epsilon, gamma, hordQ, probQ)
     controller.start(ob)
-    for i in range(0, 10):
+    for i in range(0, 1000):
         
-        controller.step(10, ob)
-        controller.step(10, ob)
-        #controller.step(10, ob3)
-        controller.step(10, ob)
-        controller.step(10, ob2)
+        controller.step(1, ob)
+        controller.step(1, ob)
+        controller.step(1, ob)
+        controller.step(1, ob2)
     controller.end(10)
 
     print controller.Q
+    #print hordQ.Qc
     #print probQ.Q

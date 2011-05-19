@@ -9,7 +9,7 @@ marioType = gridDef.marioType
 XType = gridDef.XType
 YType = gridDef.YType
 
-school = (0, 0)
+school = (1, 1)
 stop = [(1, 4), (4, 2), (4, 4)]
 
         
@@ -128,8 +128,12 @@ class BusEnv:
             assert 0
         return marioLoc
     def isTerminal(self, reward):
-        if reward >= 10:
-            return True #return to the school
+        marioNewLoc = self.getMarioLoc()
+        coinNum = self.count(coinType)
+        if coinNum == 0 and marioNewLoc == school:
+            return True
+        #if reward >= 10:
+            #return True #return to the school
         #coinNum = self.count(coinType)
         #if coinNum == 0 and marioLoc == school
             #return True
@@ -169,9 +173,9 @@ class BusEnv:
         if self.isBlockedByWall(marioNewLoc, marioOldLoc):
             marioNewLoc = marioOldLoc
 
-        coinNum = self.count(coinType)
-        if coinNum == 0 and marioNewLoc == school:
-            realReward = realReward + 20
+        #coinNum = self.count(coinType)
+        #if coinNum == 0 and marioNewLoc == school:
+            #realReward = realReward + 20
 
         self.world[marioNewLoc] = 1
         return realReward
@@ -201,7 +205,6 @@ class BusEnv:
             pygame.draw.line(self.screen, white, (0, y), (self.imgSize[0], y), 2);
         #draw wall
         for wallLoc in self.wall:
-            print wallLoc    
             lineLoc = self.getWallLine(wallLoc)
             pygame.draw.line(self.screen, red, (lineLoc[0]*incX, lineLoc[1]*incY), (lineLoc[2]*incX, lineLoc[3]*incY), 2);
             #pygame.draw.line(self.screen, red, (3, 0), (3, self.imgSize[1]), 2);
@@ -231,6 +234,8 @@ class BusEnv:
 
         return self.screen
 import SARSA
+import HORDQ
+import RMax
 import tool
 if __name__ == "__main__":
     #confList = [(0, 1)]
@@ -238,8 +243,8 @@ if __name__ == "__main__":
     objSet = (1, 1)
     monsterMoveProb = 0.3
     isEpisodeEnd = False
-    maxStep = 4000
-    frameRate = 10
+    maxStep = 200000
+    frameRate = 2
     isShow = True
     size = 800, 800
     gridSize = (discrete_size, discrete_size)
@@ -252,10 +257,16 @@ if __name__ == "__main__":
 
     actionList = ((0, 1), (0, -1), (1, 0), (-1, 0))
     #controller = RelationalQ.RelationalQ(0.05, 0.1, 0.9, actionList)
-    alpha = 0.05
+    alpha = 0.2
     epsilon = 0.1
     gamma = 1
-    controller = SARSA.SARSA(alpha, epsilon, gamma, actionList)
+    #controller = SARSA.SARSA(alpha, epsilon, gamma, actionList)
+
+    punishment = 0
+    #hordQ = HORDQ.HORDQ(alpha, epsilon, gamma, actionList)
+    #probQ = SARSA.SARSA(alpha, epsilon, gamma, [0])
+    #controller = RMax.RMax(epsilon, gamma, hordQ, probQ, punishment)
+    controller = tool.Load('smart.db')
     env = BusEnv((discrete_size, discrete_size), size, actionList)
 
     numOfTurtle = objSet[0]

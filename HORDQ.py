@@ -19,30 +19,42 @@ class HORDQ:
         if not key in self.pQc:
             self.pQc[key] = 0 #assign 0 as the initial value
 
-    def getQc(self, ob, action):
-        key = (ob, action)
-        if not key in self.Qc:
-            return 0 #optimistic exploration?
-        return self.Qc[key] 
+    #def getQc(self, ob, action):
+        #key = (ob, action)
+        #if not key in self.Qc:
+            #return 0 #optimistic exploration?
+        #return self.Qc[key] 
+    def getVc(self, ob):
+        maxV = self.Qc[(ob, self.actionList[0])]
+        for action in self.actionList:
+            key = (ob, action)
+            if self.Qc[key] > maxV:
+                maxV = self.Qc[key]
+        return maxV
 
     def getpQ(self, key):
         return self.pQc[key] + self.Qe[key]
 
+    def touchAll(self, observation):
+        for action in self.actionList:
+            self.touch(observation, action)
+
     def selectAction(self, observation):
+        self.touchAll(observation)
         #use epsilon-greedy
         if random.random() < self.epsilon:
             #select randomly
             action = self.actionList[int(random.random()*len(self.actionList))]
-            self.touch(observation, action)
             return action
         else:
             #select the best action
             v = []
             for action in self.actionList:
-                self.touch(observation, action)
                 v.append(self.getpQ((observation, action)))
             assert len(v) > 0
             m = max(v)
+            #print "v: ", v
+            #print "a:", self.actionList
             select = int(random.random()*v.count(m))
 
             i = 0
@@ -68,13 +80,21 @@ class HORDQ:
         key = (lastObservation, lastAction)
         if oldTask != newTask:
             #the taks has finished
+            #print "newpQc", newpQc
+            #print "newQe", newQe
             newQe = newQ
             newpQc = 0
             newQc = 0
+            #print "Qe", self.Qe[key], " delta", self.gamma * newQe
 
         self.pQc[key] = (1 - self.alpha)*self.pQc[key] + self.alpha*(internalReward + self.gamma * newpQc)
         self.Qc[key] = (1 - self.alpha)*self.Qc[key] + self.alpha*(reward + self.gamma * newQc)
         self.Qe[key] = (1 - self.alpha)*self.Qe[key] + self.alpha*(self.gamma * newQe)
+        
+        #print "newpQc", newpQc
+        #print "newQe", newQe
+        #print "pQc", self.pQc[key], " delta",internalReward + self.gamma * newpQc 
+        #print "Qe", self.Qe[key], " delta", self.gamma * newQe
 
     def updateQ(self, lastObservation, lastAction, reward, internalReward):
         newQe = 0

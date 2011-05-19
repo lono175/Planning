@@ -27,6 +27,8 @@ class SARSA:
                 v.append(self.Q[(observation, action)])
             assert len(v) > 0
             m = max(v)
+            #print "v: ", v
+            #print "a:", self.actionList
             select = int(random.random()*v.count(m))
 
             i = 0
