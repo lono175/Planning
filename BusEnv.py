@@ -241,7 +241,7 @@ import HORDQ
 import RMax
 import tool
 
-def BusRun(type, punishment, maxStep):
+def BusRun(type, punishment, maxStep, isRORDQ):
     discrete_size = 6
     objSet = (1, 1)
     monsterMoveProb = 0.3
@@ -262,12 +262,14 @@ def BusRun(type, punishment, maxStep):
     #controller = RelationalQ.RelationalQ(0.05, 0.1, 0.9, actionList)
     alpha = 0.2
     probAlpha = 0.1
-    epsilon = 0.1
     gamma = 1
     if type == 'SARSA':
+        epsilon = 0.1
         controller = SARSA.SARSA(alpha, epsilon, gamma, actionList)
     else:
-        hordQ = HORDQ.HORDQ(alpha, epsilon, gamma, actionList)
+        epsilon = 0.05
+        #isRORDQ = True
+        hordQ = HORDQ.HORDQ(alpha, epsilon, gamma, actionList, isRORDQ)
         probQ = SARSA.SARSA(probAlpha, epsilon, gamma, [0])
         controller = RMax.RMax(epsilon, gamma, hordQ, probQ, punishment)
     #controller = tool.Load('smart.db')
@@ -330,9 +332,10 @@ def BusRun(type, punishment, maxStep):
     #tool.Save(rewardList, 'reward_pun_10')
     #print controller.agent
 if __name__ == "__main__":
-    maxStep = 100000
-    BusRun('SARSA', 0, maxStep)
-    BusRun('pun0', 0, maxStep)
-    #BusRun('pun2', 2, maxStep)
-    #BusRun('pun5', 5, maxStep)
-    #BusRun('pun10', 10, maxStep)
+    maxStep = 50000
+    isRORDQ = False
+    BusRun('SARSA', 0, maxStep, isRORDQ)
+    BusRun('pun0', 0, maxStep, isRORDQ)
+    BusRun('pun2', 2, maxStep, isRORDQ)
+    BusRun('pun5', 5, maxStep, isRORDQ)
+    BusRun('pun10', 10, maxStep, isRORDQ)

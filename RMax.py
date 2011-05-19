@@ -158,11 +158,13 @@ class RMax:
             #room changed
             if curRoom == self.lastAction:
                #achieve the subgoal 
-               internalReward = reward
+               internalReward = reward + self.punishment
 
             else:
+               internalReward = reward
                #mission failed. punish the agent
-               internalReward = reward - self.punishment
+               #internalReward = reward - self.punishment
+
                #curLoc = self.getLoc(observation)
                #prevLoc = self.getLoc(self.lastObservation)
                #print "move: ",prevLoc, "->", curLoc, " ", self.lastPrimitiveAction, " reward ", internalReward
@@ -185,6 +187,7 @@ class RMax:
         #assume bus ends at (0, 0) 
         self.hordq.end(reward, reward)
 
+#add comparison to random planner
 import EmptySARSA
 import HORDQ
 import SARSA

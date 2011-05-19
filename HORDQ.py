@@ -1,7 +1,7 @@
 import random
 
 class HORDQ:
-    def __init__(self, alpha, epsilon, gamma, actionList):
+    def __init__(self, alpha, epsilon, gamma, actionList, isRORDQ):
         self.alpha = alpha
         self.epsilon = epsilon
         self.gamma = gamma
@@ -9,6 +9,7 @@ class HORDQ:
         self.Qc = {}
         self.Qe = {}
         self.pQc = {}
+        self.isRORDQ = isRORDQ
 
     def touch(self, observation, action):
         key = (observation, action)
@@ -33,7 +34,10 @@ class HORDQ:
         return maxV
 
     def getpQ(self, key):
-        return self.pQc[key] + self.Qe[key]
+        if self.isRORDQ:
+            return self.pQc[key]
+        else:
+            return self.pQc[key] + self.Qe[key]
 
     def touchAll(self, observation):
         for action in self.actionList:
