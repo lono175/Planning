@@ -28,7 +28,9 @@ if __name__ == "__main__":
             'reward_pun0',
             'reward_pun2',
             'reward_pun5',
-            'reward_pun10'
+            'reward_pun10',
+            'reward_pun50',
+            'reward_pun105'
             ]
     for file in fileList:
         FileSaveToCSV(file)

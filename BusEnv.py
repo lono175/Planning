@@ -355,17 +355,19 @@ def BusRun(type, punishment, maxStep, isRORDQ, isRandomPlanner, isShow, framRate
 if __name__ == "__main__":
     #compare with RORDQ with random plannar
     #compare with HORDQ with random plannar
-    maxStep = 300000
-    isShow = False
+    maxStep = 150000
+    isShow = True
     frameRate = 50000
     if isShow == True:
         frameRate = 2
     isRORDQ = False
     isRandomPlanner = False
     loadFile = ''
-    #loadFile = 'sarsa'
+    loadFile = 'sarsa'
+    loadFile = 'pun105'
     #BusRun('SARSA', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-    BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+    #BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
     #BusRun('pun2', 2, maxStep, isRORDQ, isRandomPlanner)
-    #BusRun('pun5', 5, maxStep, isRORDQ, isRandomPlanner)
-    #BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner)
+    #BusRun('pun5', 5, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+    #BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+    BusRun('pun105', 105, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
