@@ -11,6 +11,7 @@ YType = gridDef.YType
 
 school = (1, 1)
 stop = [(1, 4), (4, 2), (4, 4)]
+roadLoc = [(3, 1), (3, 2), (3, 4)]
 
         
 class BusEnv:
@@ -39,6 +40,7 @@ class BusEnv:
         #goal is 4
         #empty tile is 0
         self.world = {}
+        self.chanceToDie = 0.25
 
     def start(self, numOfTurtle, numOfCoin):
         self.stepNum = 0
@@ -65,11 +67,21 @@ class BusEnv:
         self.turtle = pygame.image.load("turtle.bmp")
         self.screen = pygame.Surface(self.imgSize)
 
+        self.health = 1
+        rand = random.random()
+        if  rand < 0.33:
+            self.road = (1, 1, 1) #1 means the road is good, 0 means it is under construction
+        elif rand < 0.66:
+            self.road = (1, 1, 0) #1 means the road is good, 0 means it is under construction
+        else:
+            self.road = (1, 0, 1) #1 means the road is good, 0 means it is under construction
+
+        #print "road status: ", self.road
         return self.world
 
     def step(self, action):
         self.stepNum = self.stepNum + 1
-        realReward = self.updateState(action)
+        realReward  = self.updateState(action)
         flag = self.isTerminal(realReward) #the order with updateState is important here
         return realReward, flag
 
@@ -77,8 +89,6 @@ class BusEnv:
 
         marioLoc = self.getMarioLoc()
 
-        #print "marioLoc", marioLoc
-        #print self.world
         #check if the passenger is there or not
         pasInfo = []
         for pas in stop:
@@ -87,9 +97,10 @@ class BusEnv:
             else:
                 pasInfo.append(1)
 
+        pasInfo.append(self.health)
+        pasInfo.append(self.road)
         pasInfo.append(marioLoc)
         res = tuple(pasInfo)
-        #print res
         return res
     def find(self, type):
         res = []
@@ -135,6 +146,8 @@ class BusEnv:
         coinNum = self.count(coinType)
         if coinNum == 0 and marioNewLoc == school:
             return True
+        if reward < -2:
+            return True
         #if reward >= 10:
             #return True #return to the school
         #coinNum = self.count(coinType)
@@ -176,10 +189,15 @@ class BusEnv:
         if self.isBlockedByWall(marioNewLoc, marioOldLoc):
             marioNewLoc = marioOldLoc
 
-        #coinNum = self.count(coinType)
-        #if coinNum == 0 and marioNewLoc == school:
-            #realReward = realReward + 20
-
+        #do the health check
+        if self.health == 0:
+            if random.random() < self.chanceToDie:
+                realReward = realReward - 100 
+        for i in range(0, len(self.road)):
+            cond = self.road[i]
+            if cond == 0 and marioNewLoc == roadLoc[i]:
+                #the road is bad, so mario are in trouble
+                self.health = 0
         self.world[marioNewLoc] = 1
         return realReward
 
@@ -241,14 +259,12 @@ import HORDQ
 import RMax
 import tool
 
-def BusRun(type, punishment, maxStep, isRORDQ, isRandomPlanner):
+def BusRun(type, punishment, maxStep, isRORDQ, isRandomPlanner, isShow, framRate, loadFile):
     discrete_size = 6
     objSet = (1, 1)
     monsterMoveProb = 0.3
     isEpisodeEnd = False
     #maxStep = 200000
-    frameRate = 50000
-    isShow = False
     size = 800, 800
     gridSize = (discrete_size, discrete_size)
     delay = 100
@@ -266,6 +282,7 @@ def BusRun(type, punishment, maxStep, isRORDQ, isRandomPlanner):
     if type == 'SARSA':
         epsilon = 0.1
         controller = SARSA.SARSA(alpha, epsilon, gamma, actionList)
+
     else:
         epsilon = 0.05
         #isRORDQ = True
@@ -273,8 +290,10 @@ def BusRun(type, punishment, maxStep, isRORDQ, isRandomPlanner):
         probQ = SARSA.SARSA(probAlpha, epsilon, gamma, [0])
         if isRandomPlanner:
             epsilon = 1
-            controller = RMax.RMax(epsilon, gamma, hordQ, probQ, punishment)
-    #controller = tool.Load('smart.db')
+        controller = RMax.RMax(epsilon, gamma, hordQ, probQ, punishment)
+    if loadFile != '':
+        print "load:"< loadFile
+        controller = tool.Load(loadFile)
     env = BusEnv((discrete_size, discrete_size), size, actionList)
 
     numOfTurtle = objSet[0]
@@ -337,10 +356,16 @@ if __name__ == "__main__":
     #compare with RORDQ with random plannar
     #compare with HORDQ with random plannar
     maxStep = 300000
+    isShow = False
+    frameRate = 50000
+    if isShow == True:
+        frameRate = 2
     isRORDQ = False
-    isRandomPlanner = True
-    BusRun('SARSA', 0, maxStep, isRORDQ, isRandomPlanner)
-    BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner)
-    BusRun('pun2', 2, maxStep, isRORDQ, isRandomPlanner)
-    BusRun('pun5', 5, maxStep, isRORDQ, isRandomPlanner)
-    BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner)
+    isRandomPlanner = False
+    loadFile = ''
+    #loadFile = 'sarsa'
+    #BusRun('SARSA', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+    BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+    #BusRun('pun2', 2, maxStep, isRORDQ, isRandomPlanner)
+    #BusRun('pun5', 5, maxStep, isRORDQ, isRandomPlanner)
+    #BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner)

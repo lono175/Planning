@@ -1,6 +1,6 @@
 import random
 
-# observation format: (1, 0, 1, (x, y))
+#!!!Assume observation format: (1, 0, 1, hp, (1, 1, 1), (x, y))
 class RMax:
     def __init__(self, epsilon, gamma, hordQ, probQ, punishment):
         self.punishment = punishment #the punishment is Integer[0, inf)
@@ -23,8 +23,15 @@ class RMax:
         actionList = self.getActionList(observation)
         for action in actionList:
             self.touch(observation, action)
+    def getPlanVar(self, ob):
+        return (ob[0], ob[1], ob[2], ob[5])
+    def getEnvVar(self, ob):
+        return (ob[3], ob[4])
+    def mergeVar(self, planVar, envVar):
+        return (planVar[0], planVar[1], planVar[2], envVar[0], envVar[1], planVar[3])
+
     def getLoc(self, ob):
-        return ob[3] #!!!Assume observation format: (1, 0, 1, (x, y))
+        return ob[5] #!!!Assume observation format: (1, 0, 1, hp, (1, 1, 1), (x, y))
     def getRoom(self, ob):
         loc = self.getLoc(ob)
         y = loc[1]/2
@@ -84,6 +91,7 @@ class RMax:
     def getQ(self, lastObservation, lastAction):
         key = (lastObservation, lastAction)
         return self.Q[key]
+
     def getV(self, ob):
         actionList = self.getActionList(ob)
         maxQ = self.getQ(ob, actionList[0])
