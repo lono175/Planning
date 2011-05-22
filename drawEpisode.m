@@ -4,11 +4,12 @@
 fileList = {
             'reward_sarsa',
             'reward_pun0',
-            'reward_pun2',
+            %'reward_pun2',
             'reward_pun5',
-            'reward_pun10',
+            'reward_pun30',
             'reward_pun50',
-            'reward_pun105'
+            %'reward_pun50',
+            %'reward_pun105'
 }
 %fileList = {'RRL_test_3333__1_1__3', 'RRL_test_2000__2_1__5', 'RRL_test_2000__1_2__5'}
 plotSpec = {'r-', 'g-', 'b-', 'r.-', 'g.-', 'r-+', 'g-+', 'b-+'}

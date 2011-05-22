@@ -51,10 +51,9 @@ class RMax:
     #observation in reduced format
     def getRoom(self, ob):
         loc = self.getLoc(ob)
-        y = loc[1]/2
-        x = loc[0]/3
-        id = int(pow(2, y))
-        id = id + x
+        y = int(loc[1]/2)
+        x = int(loc[0]/3)
+        id = 2*y + x
         return id
          
 
@@ -165,18 +164,21 @@ class RMax:
             for state in self.adjState:
                 actionList = self.getActionList(state)
                 room = self.getRoom(state)
+                fullState = self.mergeVar(state, envVar)
                 for action in actionList:
                     actionR = (room, action) 
-                    self.hordq.touchAll((actionR, state))
-                    r = self.hordq.getVc((actionR, state))
+                    self.hordq.touchAll((actionR, fullState))
+                    r = self.hordq.getVc((actionR, fullState))
                     c = 0
                     for adj in self.adjState[state]:
                         tmpKey = (state, adj)
                         self.probQ[envVar].touch(tmpKey, action)
 
                         prob = self.probQ[envVar].getQ(tmpKey, action)
-                        self.touchAll(self.mergeVar(adj, envVar))
-                        v = self.getV(self.mergeVar(adj, envVar))
+                        
+                        fullAdjState = self.mergeVar(adj, envVar)
+                        self.touchAll(fullAdjState)
+                        v = self.getV(fullAdjState)
                         c = c + prob*v
 
                     #the Bellman's equation
@@ -211,10 +213,12 @@ class RMax:
                #internalReward = reward - self.punishment
 
             #debugging
-            #curLoc = self.getLoc(observation)
-            #prevLoc = self.getLoc(self.lastObservation)
+            #curLoc = self.getLoc(self.getPlanVar(observation))
+            #prevLoc = self.getLoc(self.getPlanVar(self.lastObservation))
+            #print "lastOb:", self.lastObservation
+            #print "ob:", observation
             #print "move: ",prevLoc, "->", curLoc, " ", self.lastPrimitiveAction, " reward ", internalReward
-            #print "move: ",lastRoom, "->", curRoom, " ", self.lastAction, " reward ", internalReward
+            #print "move: ",lastRoom, "->", curRoom, " ", self.lastAction, " next action:", action, " reward ", internalReward
 
             primitiveAction = self.hordq.step(reward, ((curRoom, action), observation), internalReward)
 
@@ -230,10 +234,11 @@ class RMax:
         lastAction = self.lastAction
         lastOb = self.getPlanVar(inLastOb)
         envVar = self.getEnvVar(inLastOb)
-        for state in self.adjState[lastOb]:
-            tmpProbKey = (lastOb, state)
-            self.probQ[envVar].touch(tmpProbKey, lastAction)
-            self.probQ[envVar].updateQ(tmpProbKey, lastAction, 0, 0) #gamma for probQ is not useful here
+        if lastOb in self.adjState:
+            for state in self.adjState[lastOb]:
+                tmpProbKey = (lastOb, state)
+                self.probQ[envVar].touch(tmpProbKey, lastAction)
+                self.probQ[envVar].updateQ(tmpProbKey, lastAction, 0, 0) #gamma for probQ is not useful here
         self.hordq.end(reward, reward)
 
 #add comparison to random planner
@@ -245,21 +250,29 @@ if __name__ == "__main__":
     alpha = 0.2
     epsilon = 0.1
     gamma = 0.9
-    ob = (-1, -1, -1, (1, 2))
-    ob2 = (-1, -1, -1, (5, 4))
-    ob3 = (-1, -1, -1, (0, 0))
-    hordQ = HORDQ.HORDQ(alpha, epsilon, gamma, [1, -1])
+    #ob = (-1, -1, -1, (1, 2))
+    #ob2 = (-1, -1, -1, (5, 4))
+    #ob3 = (-1, -1, -1, (0, 0))
+    ob4 = (-1, -1, -1, (1, 1))
+    punishment = 10
+    isRORDQ = False
+    hordQ = HORDQ.HORDQ(alpha, epsilon, gamma, [1, -1], isRORDQ)
     probQ = SARSA.SARSA(alpha, epsilon, gamma, [1, -1])
-    controller = RMax(epsilon, gamma, hordQ, probQ)
-    controller.start(ob)
-    for i in range(0, 1000):
-        
-        controller.step(1, ob)
-        controller.step(1, ob)
-        controller.step(1, ob)
-        controller.step(1, ob2)
-    controller.end(10)
+    controller = RMax(epsilon, gamma, hordQ, probQ, punishment)
 
-    print controller.Q
+    #unit test for get room
+    val = controller.getRoom(ob4)
+    print "value: ", val
+    assert( val == 0)
+    #controller.start(ob)
+    #for i in range(0, 1000):
+        #
+        #controller.step(1, ob)
+        #controller.step(1, ob)
+        #controller.step(1, ob)
+        #controller.step(1, ob2)
+    #controller.end(10)
+
+    #print controller.Q
     #print hordQ.Qc
     #print probQ.Q

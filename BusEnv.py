@@ -76,6 +76,7 @@ class BusEnv:
         else:
             self.road = (1, 0, 1) #1 means the road is good, 0 means it is under construction
 
+        #self.road = (1, 0, 1) #1 means the road is good, 0 means it is under construction
         #print "road status: ", self.road
         return self.world
 
@@ -192,7 +193,7 @@ class BusEnv:
         #do the health check
         if self.health == 0:
             if random.random() < self.chanceToDie:
-                realReward = realReward - 100 
+                realReward = realReward - 30 
         for i in range(0, len(self.road)):
             cond = self.road[i]
             if cond == 0 and marioNewLoc == roadLoc[i]:
@@ -292,7 +293,7 @@ def BusRun(type, punishment, maxStep, isRORDQ, isRandomPlanner, isShow, framRate
             epsilon = 1
         controller = RMax.RMax(epsilon, gamma, hordQ, probQ, punishment)
     if loadFile != '':
-        print "load:"< loadFile
+        print "load:", loadFile
         controller = tool.Load(loadFile)
     env = BusEnv((discrete_size, discrete_size), size, actionList)
 
@@ -352,22 +353,85 @@ def BusRun(type, punishment, maxStep, isRORDQ, isRandomPlanner, isShow, framRate
     #tool.Save(controller, 'smart.db')
     #tool.Save(rewardList, 'reward_pun_10')
     #print controller.agent
+def checkHordq():
+    loadFile = 'pun20'
+    controller = tool.Load(loadFile)
+    inOb = ((1, 1, 1, 1, (1, 0, 1), (1, 2)))
+    ob = ((2, 3), inOb)
+    hordq = controller.hordq
+    for action in hordq.actionList: 
+        print action
+        print hordq.getpQ((ob, action))
+        
+        
+
+
+def checkProb():
+    loadFile = 'pun20'
+    controller = tool.Load(loadFile)
+    inOb = ((1, 1, 1, 1, (1, 0, 1), (1, 2)))
+    #adjOb = ((1, 1, 1, 1, (1, 0, 1), (3, 2)))
+    #adjOb = ((1, 1, 1, 1, (1, 0, 1), (1, 1)))
+    adjOb = ((0, 1, 1, 1, (1, 1, 1), (1, 4)))
+    envVar = controller.getEnvVar(inOb)
+    state = controller.getPlanVar(inOb)
+    adj = controller.getPlanVar(adjOb)
+    action = 3
+    tmpKey = (state, adj)
+    #print controller.probQ[envVar].touch(tmpKey, action)
+    #print controller.probQ[envVar].Q
+    #print controller.probQ[envVar].getQ(tmpKey, action)
+
+    actionList = controller.getActionList(state)
+    room = controller.getRoom(state)
+    fullState = controller.mergeVar(state, envVar)
+    controller.updateQModel(inOb)
+    for action in actionList:
+        actionR = (room, action) 
+        controller.hordq.touchAll((actionR, fullState))
+        r = controller.hordq.getVc((actionR, fullState))
+        c = 0
+        print '-------action: ', action, 'environment:', envVar
+        print 'Vr:', r
+
+        for adj in controller.adjState[state]:
+            tmpKey = (state, adj)
+            controller.probQ[envVar].touch(tmpKey, action)
+            prob = controller.probQ[envVar].getQ(tmpKey, action)
+            print tmpKey
+            print prob
+            #controller.touchAll(self.mergeVar(adj, envVar))
+            v = controller.getV(controller.mergeVar(adj, envVar))
+            print "v:", v
+            #c = c + prob*v
+    
+    
 if __name__ == "__main__":
-    #compare with RORDQ with random plannar
-    #compare with HORDQ with random plannar
-    maxStep = 150000
-    isShow = True
-    frameRate = 50000
-    if isShow == True:
-        frameRate = 2
-    isRORDQ = False
-    isRandomPlanner = False
-    loadFile = ''
-    loadFile = 'sarsa'
-    loadFile = 'pun105'
-    #BusRun('SARSA', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-    #BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-    #BusRun('pun2', 2, maxStep, isRORDQ, isRandomPlanner)
-    #BusRun('pun5', 5, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-    #BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-    BusRun('pun105', 105, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+
+    #checkHordq()
+    #checkProb()
+    #if False:
+    if True:
+        #compare with RORDQ with random plannar
+        #compare with HORDQ with random plannar
+        maxStep = 200000
+        isShow = False
+        frameRate = 50000
+        if isShow == True:
+            frameRate = 2
+        isRORDQ = False
+        isRandomPlanner = False
+        loadFile = ''
+        #loadFile = 'sarsa'
+        #loadFile = 'pun5'
+        #loadFile = 'pun25'
+        #loadFile = 'pun20'
+        #BusRun('SARSA', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('pun2', 2, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        BusRun('pun5', 5, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('pun20', 20, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        BusRun('pun30', 30, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        BusRun('pun50', 50, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('pun105', 105, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)

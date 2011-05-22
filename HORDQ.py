@@ -26,22 +26,51 @@ class HORDQ:
             #return 0 #optimistic exploration?
         #return self.Qc[key] 
     def getVc(self, ob):
-        maxV = self.Qc[(ob, self.actionList[0])]
-        for action in self.actionList:
-            key = (ob, action)
-            if self.Qc[key] > maxV:
-                maxV = self.Qc[key]
+        parentAction, inOb = ob
+        assert (len(inOb) == 6)
+        action = self.getPolicy(ob)
+        maxV = self.Qc[(ob, action)]
+        #for action in self.actionList:
+            #key = (ob, action)
+            #print key
+            #print 'Qc', self.Qc[key]
+            #if self.Qc[key] > maxV:
+                #maxV = self.Qc[key]
         return maxV
 
     def getpQ(self, key):
         if self.isRORDQ:
             return self.pQc[key]
         else:
+            #print "Qc:", self.pQc[key]
+            #print "Qe:", self.Qe[key]
             return self.pQc[key] + self.Qe[key]
 
     def touchAll(self, observation):
         for action in self.actionList:
             self.touch(observation, action)
+
+    def getPolicy(self, observation):
+        #select the best action
+        v = []
+        for action in self.actionList:
+            v.append(self.getpQ((observation, action)))
+        assert len(v) > 0
+        m = max(v)
+        #print "v: ", v
+        #print "a:", self.actionList
+        select = int(random.random()*v.count(m))
+
+        i = 0
+        maxCount = 0
+        for value in v:
+            if value == m:
+                if maxCount == select:
+                    action = self.actionList[i]
+                    break
+                maxCount = maxCount + 1
+            i = i + 1
+        return action
 
     def selectAction(self, observation):
         self.touchAll(observation)
@@ -51,25 +80,7 @@ class HORDQ:
             action = self.actionList[int(random.random()*len(self.actionList))]
             return action
         else:
-            #select the best action
-            v = []
-            for action in self.actionList:
-                v.append(self.getpQ((observation, action)))
-            assert len(v) > 0
-            m = max(v)
-            #print "v: ", v
-            #print "a:", self.actionList
-            select = int(random.random()*v.count(m))
-
-            i = 0
-            maxCount = 0
-            for value in v:
-                if value == m:
-                    if maxCount == select:
-                        action = self.actionList[i]
-                        break
-                    maxCount = maxCount + 1
-                i = i + 1
+            action = self.getPolicy(observation)
             return action
 
     def update(self, lastObservation, lastAction, reward, observation, action, internalReward):
