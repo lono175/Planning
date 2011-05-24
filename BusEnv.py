@@ -34,6 +34,11 @@ class BusEnv:
                 (5, 1, 5, 2),
                 (5, 3, 5, 4)
                 ]
+        self.randomList = {}
+        self.randomList[(0, 1)] = [(1, 0), (-1, 0)]
+        self.randomList[(0, -1)] = [(1, 0), (-1, 0)]
+        self.randomList[(1, 0)] = [(0, 1), (0, -1)]
+        self.randomList[(-1, 0)] = [(0, 1), (0, -1)]
         #Mario is 1
         #turtle is 2
         #coin is 3
@@ -68,6 +73,13 @@ class BusEnv:
         self.screen = pygame.Surface(self.imgSize)
 
         self.health = 1
+
+        self.changeRoadStatus()
+        #self.road = (1, 0, 1) #1 means the road is good, 0 means it is under construction
+        #print "road status: ", self.road
+        return self.world
+
+    def changeRoadStatus(self):
         rand = random.random()
         if  rand < 0.33:
             self.road = (1, 1, 1) #1 means the road is good, 0 means it is under construction
@@ -75,10 +87,6 @@ class BusEnv:
             self.road = (1, 1, 0) #1 means the road is good, 0 means it is under construction
         else:
             self.road = (1, 0, 1) #1 means the road is good, 0 means it is under construction
-
-        #self.road = (1, 0, 1) #1 means the road is good, 0 means it is under construction
-        #print "road status: ", self.road
-        return self.world
 
     def step(self, action):
         self.stepNum = self.stepNum + 1
@@ -168,15 +176,23 @@ class BusEnv:
             return True 
         return False
     def updateState(self, action):
+        agentAction = action
+        RandomAction = 0.1
         realReward = -1
         marioOldLoc = self.getMarioLoc()
         self.world[marioOldLoc] = 0
 
         #move Mario
-        #if random.random() < 0.1:
+        rand = random.random()
+        if  rand < RandomAction:
             #select randomly
-            #action = self.actionList[int(random.random()*len(self.actionList))]
-
+            if not action in self.randomList:
+                assert(False)
+            if rand < RandomAction/2:
+                action = self.randomList[action][0]
+            else:
+                action = self.randomList[action][1]
+            #print "random action!!!"
         marioNewLoc = (marioOldLoc[0]+action[0], marioOldLoc[1]+action[1])
 
         #check Mario stays in the boundary
@@ -193,13 +209,18 @@ class BusEnv:
         #do the health check
         if self.health == 0:
             if random.random() < self.chanceToDie:
-                realReward = realReward - 30 
+                realReward = realReward - 50 
         for i in range(0, len(self.road)):
             cond = self.road[i]
             if cond == 0 and marioNewLoc == roadLoc[i]:
                 #the road is bad, so mario are in trouble
                 self.health = 0
         self.world[marioNewLoc] = 1
+
+        if random.random() < 0.05:
+            #change road status
+            #print "change status!!!"
+            self.changeRoadStatus()
         return realReward
 
     def getWallLine(self, wallLoc):
@@ -414,7 +435,7 @@ if __name__ == "__main__":
     if True:
         #compare with RORDQ with random plannar
         #compare with HORDQ with random plannar
-        maxStep = 200000
+        maxStep = 400000
         isShow = False
         frameRate = 50000
         if isShow == True:
@@ -427,11 +448,11 @@ if __name__ == "__main__":
         #loadFile = 'pun25'
         #loadFile = 'pun20'
         #BusRun('SARSA', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun2', 2, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         BusRun('pun5', 5, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        #BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        #BusRun('pun20', 20, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        BusRun('pun30', 30, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         BusRun('pun50', 50, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        BusRun('pun20', 20, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('pun30', 30, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun105', 105, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)

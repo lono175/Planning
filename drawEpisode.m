@@ -6,7 +6,8 @@ fileList = {
             'reward_pun0',
             %'reward_pun2',
             'reward_pun5',
-            'reward_pun30',
+            'reward_pun10',
+            %'reward_pun20',
             'reward_pun50',
             %'reward_pun50',
             %'reward_pun105'
@@ -26,7 +27,7 @@ for i = 1:length(fileList)
 end
 xlabel('# steps')
 ylabel('reward per episode')
-legend( 'reward sarsa', 'reward pun0', 'reward pun2', 'reward pun5', 'reward pun10', 'reward pun 50', 'reward pun 105')
+legend( 'reward sarsa', 'reward pun0', 'reward pun5', 'reward pun10', 'reward pun20', 'reward pun 50', 'reward pun 105')
 %load('conv.csv')
 %SARSA = conv;
 %load('RRL_conv.csv')
