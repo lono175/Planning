@@ -32,7 +32,8 @@ if __name__ == "__main__":
             'reward_pun20',
             'reward_pun50',
             #'reward_pun30',
-            #'reward_pun50',
+            'reward_pun60',
+            'reward_RORDQ',
             #'reward_pun105'
             ]
     for file in fileList:

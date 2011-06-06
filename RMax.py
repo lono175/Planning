@@ -196,8 +196,9 @@ class RMax:
             primitiveAction = self.hordq.step(reward, ((curRoom, self.lastAction), observation), reward)
         else:
             #update model
-            self.updateProbModel(observation, self.lastObservation, self.lastAction)
-            self.updateQModel(observation)
+            if self.epsilon != 1:
+                self.updateProbModel(observation, self.lastObservation, self.lastAction)
+                self.updateQModel(observation)
 
             #choose the next action
             action = self.selectAction(observation)

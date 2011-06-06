@@ -435,24 +435,26 @@ if __name__ == "__main__":
     if True:
         #compare with RORDQ with random plannar
         #compare with HORDQ with random plannar
-        maxStep = 400000
+        maxStep = 2000000
         isShow = False
         frameRate = 50000
         if isShow == True:
             frameRate = 2
         isRORDQ = False
-        isRandomPlanner = False
+        isRandomPlanner = True
         loadFile = ''
         #loadFile = 'sarsa'
         #loadFile = 'pun5'
         #loadFile = 'pun25'
-        #loadFile = 'pun20'
+        #loadFile = 'RORDQ'
         #BusRun('SARSA', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun2', 2, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        BusRun('pun5', 5, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        BusRun('pun50', 50, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        BusRun('pun20', 20, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('pun5', 5, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('pun50', 50, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('pun60', 60, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('pun20', 20, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun30', 30, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun105', 105, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        BusRun('RORDQ', 5, maxStep, True, isRandomPlanner, isShow, frameRate, loadFile)
