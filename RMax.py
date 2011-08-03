@@ -228,10 +228,10 @@ class RMax:
             self.lastAction = action
         self.lastPrimitiveAction = primitiveAction #debug only
         self.stepNum = self.stepNum + 1
-        if self.stepNum % 100000 == 0:
-            self.punishment = self.punishment - 2
-            if self.punishment < 0:
-                self.punishment = 0
+        #if self.stepNum % 100000 == 0:
+        self.punishment = self.punishment - 2.0/100000.0
+        if self.punishment < 0:
+            self.punishment = 0
          
         return primitiveAction
 

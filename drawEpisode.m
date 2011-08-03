@@ -5,6 +5,7 @@ close all
 fileList = {
             'reward_sarsa',
             'reward_pun0',
+            'reward_pun_dec'
             %'reward_pun2',
             %'reward_pun5',
             %'reward_pun10',
@@ -34,7 +35,7 @@ xlabel('Number of steps (100,000s)')
 ylabel('Reward per episode')
 %legend( 'SARSA', 'Model+HORDQ(0)', 'Model+HORDQ(5)', 'Model+HORDQ(10)', 'Model+HORDQ(20)', 'Model+HORDQ(50)', 'Model+HORDQ(60)', 'Model+MaxQ')
 %legend( 'SARSA(0)', 'Model+HORDQ(0)', 'Model+HORDQ(5)',  'Model+HORDQ(60)', 'Model+MAXQ-Q', 'location', 'best')
-legend( 'SARSA(0)', 'HORDQ', 'location', 'best')
+legend( 'SARSA(0)', 'HORDQ', 'tmp' , 'location', 'best')
 %h_legend = legend( 'SARSA(0)', 'Random+HORDQ(0)', 'Random+HORDQ(5)',  'Random+HORDQ(60)', 'Random+MAXQ-Q', 'location', 'best')
 
 h_xlabel = get(gca,'XLabel');
