@@ -435,13 +435,14 @@ if __name__ == "__main__":
     if True:
         #compare with RORDQ with random plannar
         #compare with HORDQ with random plannar
-        maxStep = 2000000
+        #maxStep = 2000000
+        maxStep = 400000
         isShow = False
         frameRate = 50000
         if isShow == True:
             frameRate = 2
         isRORDQ = False
-        isRandomPlanner = True
+        isRandomPlanner = False
         loadFile = ''
         #loadFile = 'sarsa'
         #loadFile = 'pun5'
@@ -449,7 +450,7 @@ if __name__ == "__main__":
         #loadFile = 'RORDQ'
         #BusRun('SARSA', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun2', 2, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        #BusRun('pun5', 5, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        BusRun('pun_dec', 6, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun50', 50, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun60', 60, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
@@ -457,4 +458,4 @@ if __name__ == "__main__":
         #BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun30', 30, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun105', 105, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        BusRun('RORDQ', 5, maxStep, True, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('RORDQ', 5, maxStep, True, isRandomPlanner, isShow, frameRate, loadFile)

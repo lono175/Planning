@@ -20,6 +20,7 @@ class RMax:
                 [3, 4]
                 ]
         self.Qmodel = {}
+        self.stepNum = 0
         
     def touchAll(self, observation):
         actionList = self.getActionList(self.getPlanVar(observation))
@@ -226,6 +227,12 @@ class RMax:
             self.lastObservation = observation
             self.lastAction = action
         self.lastPrimitiveAction = primitiveAction #debug only
+        self.stepNum = self.stepNum + 1
+        if self.stepNum % 100000 == 0:
+            self.punishment = self.punishment - 2
+            if self.punishment < 0:
+                self.punishment = 0
+         
         return primitiveAction
 
     def end(self, reward):
