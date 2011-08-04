@@ -207,12 +207,12 @@ class RMax:
             #room changed
             if curRoom == self.lastAction:
                #achieve the subgoal 
-               internalReward = reward + self.punishment
-
+               #internalReward = reward + self.punishment
+               internalReward = reward 
             else:
-               internalReward = reward
+               #internalReward = reward
                #mission failed. punish the agent
-               #internalReward = reward - self.punishment
+               internalReward = reward - self.punishment
 
             #debugging
             #curLoc = self.getLoc(self.getPlanVar(observation))
@@ -229,7 +229,7 @@ class RMax:
         self.lastPrimitiveAction = primitiveAction #debug only
         self.stepNum = self.stepNum + 1
         #if self.stepNum % 100000 == 0:
-        self.punishment = self.punishment - 2.0/100000.0
+        self.punishment = self.punishment - 1.0/100000.0
         if self.punishment < 0:
             self.punishment = 0
          
