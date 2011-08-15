@@ -1,7 +1,7 @@
 function [ start sumT ] = gridSum( q )
 windowSize = 400
-coarse = 40
-alpha = 0.01
+coarse = 1 
+alpha = 0.001
 
 sumT = [];
 sumQ = sum(q(1:windowSize, 2));

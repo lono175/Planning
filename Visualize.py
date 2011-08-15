@@ -23,20 +23,20 @@ def FileSaveToCSV(filename):
     controller = listT[0]
     SaveToCSV(listT, filename+'.csv')
 if __name__ == "__main__":
-    FileSaveToCSV('reward_pun_dec')
-    #fileList = [
+    #FileSaveToCSV('reward_pun_dec')
+    fileList = [
             #'reward_sarsa',
-            #'reward_pun0',
-            ##'reward_pun2',
-            #'reward_pun5',
-            #'reward_pun10',
+            'reward_pun0',
+            #'reward_pun2',
+            'reward_pun5',
+            'reward_pun10',
             #'reward_pun20',
             #'reward_pun50',
-            ##'reward_pun30',
+            #'reward_pun30',
             #'reward_pun60',
             #'reward_RORDQ',
-            ##'reward_pun105'
-            #]
-    #for file in fileList:
-        #FileSaveToCSV(file)
+            #'reward_pun105'
+            ]
+    for file in fileList:
+        FileSaveToCSV(file)
 

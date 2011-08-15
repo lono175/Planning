@@ -221,6 +221,11 @@ class BusEnv:
             #change road status
             #print "change status!!!"
             self.changeRoadStatus()
+
+        
+        coinNum = self.count(coinType)
+        if coinNum == 0 and marioNewLoc == school:
+            realReward = realReward + 100
         return realReward
 
     def getWallLine(self, wallLoc):
@@ -449,13 +454,13 @@ if __name__ == "__main__":
         #loadFile = 'pun25'
         #loadFile = 'RORDQ'
         #BusRun('SARSA', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        #BusRun('pun2', 2, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        BusRun('pun_dec', 6, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        BusRun('pun5', 5, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        #BusRun('pun_dec', 6, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun50', 50, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun60', 60, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        #BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        BusRun('pun0', 0, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun20', 20, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
-        #BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
+        BusRun('pun10', 10, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun30', 30, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('pun105', 105, maxStep, isRORDQ, isRandomPlanner, isShow, frameRate, loadFile)
         #BusRun('RORDQ', 5, maxStep, True, isRandomPlanner, isShow, frameRate, loadFile)

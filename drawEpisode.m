@@ -7,8 +7,8 @@ fileList = {
             'reward_pun0',
             'reward_pun_dec'
             %'reward_pun2',
-            %'reward_pun5',
-            %'reward_pun10',
+            'reward_pun5',
+            'reward_pun10',
             %'reward_pun20',
             %'reward_pun50',
             %'reward_pun60',
@@ -30,12 +30,12 @@ for i = 1:length(fileList)
     plot(start/100000, sumT, char(plotSpec(i)), 'LineWidth', 3, 'Color', colorSpec{i})
     hold on
 end
-axis([0, 4, -160, -10])
+axis([0, 4, -160, 100])
 xlabel('Number of steps (100,000s)')
 ylabel('Reward per episode')
-%legend( 'SARSA', 'Model+HORDQ(0)', 'Model+HORDQ(5)', 'Model+HORDQ(10)', 'Model+HORDQ(20)', 'Model+HORDQ(50)', 'Model+HORDQ(60)', 'Model+MaxQ')
+legend( 'SARSA', 'Model+HORDQ(0)', 'Model+HORDQ(5)', 'Model+HORDQ(10)', 'Model+HORDQ(20)', 'Model+HORDQ(50)', 'Model+HORDQ(60)', 'Model+MaxQ')
 %legend( 'SARSA(0)', 'Model+HORDQ(0)', 'Model+HORDQ(5)',  'Model+HORDQ(60)', 'Model+MAXQ-Q', 'location', 'best')
-legend( 'SARSA(0)', 'HORDQ', 'tmp' , 'location', 'best')
+%legend( 'SARSA(0)', 'HORDQ', 'tmp' , 'location', 'best')
 %h_legend = legend( 'SARSA(0)', 'Random+HORDQ(0)', 'Random+HORDQ(5)',  'Random+HORDQ(60)', 'Random+MAXQ-Q', 'location', 'best')
 
 h_xlabel = get(gca,'XLabel');
